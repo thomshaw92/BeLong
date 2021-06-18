@@ -19,16 +19,28 @@
 #
 #   Specify quality control (QC) folder (Default is ~/qc_batch_processing):
 #   SCT_BP_QC_FOLDER=/user/toto/my_qc_folder $SCT_DIR/batch_processing.sh
+ml spinalcordtoolbox
 subjName="sub-001"
 SCT_data_dir="/vnm/BeLong_BIDS/${subjName}"
-SCT_out_dir="/vnm/BeLong_BIDS/derivatives/${subjName}/SCT_output"
-SCT_BP_QC_FOLDER="/vnm/BeLong_BIDS/derivatives/${subjName}/SCT_qc"
+SCT_out_dir="/vnm/BeLong_BIDS/derivatives/SCT_output/${subjName}"
+SCT_BP_QC_FOLDER="/vnm/BeLong_BIDS/derivatives/SCT_qc"
 mkdir -p ${SCT_out_dir}
 SCT_DIR="/vnm/sct_5.3"
 # Abort on error
 set -ve
 
-
+#copy all the files to their correct folders in the out_dir
+mkdir -p ${SCT_out_dir}/t2 ${SCT_out_dir}/t2s ${SCT_out_dir}/t1 ${SCT_out_dir}/dmri ${SCT_out_dir}/mt  
+#T2
+cp ${SCT_data_dir}/anat/${subjName}_acq-spine_run-1_T2w.nii.gz ${SCT_out_dir}/t2/t2.nii.gz
+cp ${SCT_data_dir}/anat/${subjName}_acq-spine_run-1_T1w.nii.gz ${SCT_out_dir}/t1/t1.nii.gz
+cp ${SCT_data_dir}/anat/${subjName}_acq-spineGREME_run-1_T2star.nii.gz ${SCT_out_dir}/t2s/t2s.nii.gz
+cp ${SCT_data_dir}/anat/${subjName}_acq-spineGREMT0_run-1_T2star.nii.gz ${SCT_out_dir}/mt/mt0.nii.gz
+cp ${SCT_data_dir}/anat/${subjName}_acq-spineGREMT1_run-1_T2star.nii.gz ${SCT_out_dir}/mt/mt1.nii.gz
+cp ${SCT_data_dir}/anat/${subjName}_acq-spineGRE_run-1_T1w.nii.gz ${SCT_out_dir}/mt/t1w.nii.gz
+cp ${SCT_data_dir}/dwi/${subjName}_acq-spine_dir-COL_run-1_dwi.nii.gz ${SCT_out_dir}/dmri/dmri.nii.gz
+cp ${SCT_data_dir}/dwi/${subjName}_acq-spine_dir-COL_run-1_dwi.bval ${SCT_out_dir}/dmri/bvals.txt
+cp ${SCT_data_dir}/dwi/${subjName}_acq-spine_dir-COL_run-1_dwi.bvec ${SCT_out_dir}/dmri/bvecs.txt
 # For full verbose, uncomment the next line
 # set -x
 
@@ -54,124 +66,63 @@ fi
 start=`date +%s`
 
 #cd into correct dir
-cd ${SCT_data_dir}
+cd ${SCT_out_dir}
+cd t2
 
 # t2
 # ===========================================================================================
-cd anat
-##START HERE AND MAKE A FOLDER PER MODALITY - COPY ACROSS THE FILES
-
 # Segment spinal cord
-<<COMMENT
-sct_deepseg_sc -i ${subjName}_acq-spine_run-1_T2w.nii.gz \
+
+sct_deepseg_sc -i t2.nii.gz \
 -c t2 \
 -kernel 3d \
--o ${SCT_out_dir}/t2_deepseg.nii.gz \
 -qc "$SCT_BP_QC_FOLDER"
+
 # Tips: If you are not satisfied with the results you can try with another algorithm:
 # sct_propseg -i t2.nii.gz -c t2 -qc "$SCT_BP_QC_FOLDER"
 # Vertebral labeling
 # Tips: for manual initialization of labeling by clicking at disc C2-C3, use flag -initc2
-sct_label_vertebrae -i ${subjName}_acq-spine_run-1_T2w.nii.gz \
--s ${SCT_out_dir}/t2_deepseg.nii.gz \
--c t2 \
--qc "$SCT_BP_QC_FOLDER" \
--ofolder ${SCT_out_dir}
+sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -qc "$SCT_BP_QC_FOLDER"
 # Create labels at in the cord at C2 and C5 mid-vertebral levels
-
-sct_label_utils -i ${SCT_out_dir}/t2_deepseg_labeled.nii.gz \
--vert-body 2,5 \
--o ${SCT_out_dir}/labels_vert.nii.gz
+sct_label_utils -i t2_seg_labeled.nii.gz -vert-body 2,5 -o labels_vert.nii.gz
 # Tips: you can also create labels manually using:
 # sct_label_utils -i t2.nii.gz -create-viewer 2,5 -o labels_vert.nii.gz
 # Register to template
-sct_register_to_template -i ${subjName}_acq-spine_run-1_T2w.nii.gz \
--s ${SCT_out_dir}/t2_deepseg.nii.gz \
--l ${SCT_out_dir}/labels_vert.nii.gz \
--c t2 \
--ofolder ${SCT_out_dir} \
--qc "$SCT_BP_QC_FOLDER"
-
+sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -l labels_vert.nii.gz -c t2 -qc "$SCT_BP_QC_FOLDER"
 # Tips: If you are not satisfied with the results, you can tweak registration parameters.
 # For example here, we would like to take into account the rotation of the cord, as well as
 # adding a 3rd registration step that uses the image intensity (not only cord segmentations).
 # so we could do something like this:
 # sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2s.nii.gz -iseg $SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz -d t2s.nii.gz -dseg t2s_seg.nii.gz -param step=1,type=seg,algo=slicereg,smooth=3:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -initwarp ../t2/warp_template2anat.nii.gz
 # Warp template without the white matter atlas (we don't need it at this point)
-sct_warp_template -d ${subjName}_acq-spine_run-1_T2w.nii.gz \
--w ${SCT_out_dir}/warp_template2anat.nii.gz \
--a '0' -ofolder ${SCT_out_dir} 
-
+sct_warp_template -d t2.nii.gz -w warp_template2anat.nii.gz -a 0
 # Compute cross-sectional area (and other morphometry measures) for each slice
-sct_process_segmentation -i ${SCT_out_dir}/t2_deepseg.nii.gz \
--o ${SCT_out_dir}/csa.csv \
--qc "$SCT_BP_QC_FOLDER"
-
-
-
+sct_process_segmentation -i t2_seg.nii.gz -qc "$SCT_BP_QC_FOLDER"
 # Compute cross-sectional area and average between C2 and C3 levels
-sct_process_segmentation -i ${SCT_out_dir}/t2_deepseg.nii.gz \
--vertfile ${SCT_out_dir}/template/PAM50_levels.nii.gz \
--vert 2:3 -o ${SCT_out_dir}/csa_c2c3.csv
-
+sct_process_segmentation -i t2_seg.nii.gz -vert 2:3 -o csa_c2c3.csv -qc "$SCT_BP_QC_FOLDER"
+# Go back to root folder
+cd ..
 
 # t2star 
 # ===========================================================================================
+cd t2s
 
 # Spinal cord segmentation
-sct_deepseg_sc -i ${subjName}_acq-spineGREME_run-1_T2star.nii.gz \
--c t2s \
--kernel 3d \
--o ${SCT_out_dir}/t2s_deepseg.nii.gz \
--qc "$SCT_BP_QC_FOLDER"
-
-# Segment gray matter ##TRY -t option at some point
-sct_deepseg_gm -i ${subjName}_acq-spineGREME_run-1_T2star.nii.gz \
--m large \
--o ${SCT_out_dir}/t2s_deepseg_GM.nii.gz \
--qc "$SCT_BP_QC_FOLDER"
-
+sct_deepseg_sc -i t2s.nii.gz -c t2s -qc "$SCT_BP_QC_FOLDER"
+# Segment gray matter
+sct_deepseg_gm -i t2s.nii.gz -m large -qc "$SCT_BP_QC_FOLDER"
 # Register template->t2s (using warping field generated from template<->t2 registration)
-sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2s.nii.gz \
--iseg $SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz \
--d ${subjName}_acq-spineGREME_run-1_T2star.nii.gz \
--dseg ${SCT_out_dir}/t2s_deepseg.nii.gz \
--param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3:step=3,type=im,algo=syn,slicewise=1,iter=1,metric=CC \
--initwarp ${SCT_out_dir}/warp_template2anat.nii.gz \
--initwarpinv ${SCT_out_dir}/warp_anat2template.nii.gz \
--ofolder ${SCT_out_dir}/multimodal_template_reg_t2_t2s \
-#-o ${SCT_out_dir}/t2s_src_reg
-
+sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2s.nii.gz -iseg $SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz -d t2s.nii.gz -dseg t2s_seg.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3:step=3,type=im,algo=syn,slicewise=1,iter=1,metric=CC -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz
 # rename warping fields for clarity
-mv ${SCT_out_dir}/multimodal_template_reg_t2_t2s/warp_PAM50_t2s2sub-001_acq-spineGREME_run-1_T2star.nii.gz ${SCT_out_dir}/warp_template2t2s.nii.gz
-mv ${SCT_out_dir}/multimodal_template_reg_t2_t2s/warp_sub-001_acq-spineGREME_run-1_T2star2PAM50_t2s.nii.gz ${SCT_out_dir}/warp_t2s2template.nii.gz
-
-COMMENT
-
-cd ${SCT_out_dir}
-
+mv warp_PAM50_t2s2t2s.nii.gz warp_template2t2s.nii.gz
+mv warp_t2s2PAM50_t2s.nii.gz warp_t2s2template.nii.gz
 # Warp template
-sct_warp_template -d ${SCT_data_dir}/anat/${subjName}_acq-spineGREME_run-1_T2star.nii.gz \
--w warp_template2t2s.nii.gz \
--ofolder sct_warp_template_t2s
-
+sct_warp_template -d t2s.nii.gz -w warp_template2t2s.nii.gz
 # Subtract GM segmentation from cord segmentation to obtain WM segmentation
-sct_maths -i ${SCT_out_dir}/t2s_deepseg.nii.gz -sub ${SCT_out_dir}/t2s_deepseg_GM.nii.gz \
--o ${SCT_out_dir}/t2s_wmseg.nii.gz
-
+sct_maths -i t2s_seg.nii.gz -sub t2s_gmseg.nii.gz -o t2s_wmseg.nii.gz
 # Compute cross-sectional area of the gray and white matter between C2 and C5
-sct_process_segmentation -i ${SCT_out_dir}/t2s_wmseg.nii.gz \
--vert 2:5 \
--perlevel 1 \
--vertfile ${SCT_out_dir}/template/PAM50_levels.nii.gz \
--o ${SCT_out_dir}/csa_wm.csv
-# \
-
-sct_process_segmentation -i ${SCT_out_dir}/t2s_deepseg_GM.nii.gz \
- -vertfile ${SCT_out_dir}/template/PAM50_levels.nii.gz \
- -vert 2:5 \
- -perlevel 1 \
- -o ${SCT_out_dir}/csa_gm.csv
+sct_process_segmentation -i t2s_wmseg.nii.gz -vert 2:5 -perlevel 1 -o csa_wm.csv -qc "$SCT_BP_QC_FOLDER"
+sct_process_segmentation -i t2s_gmseg.nii.gz -vert 2:5 -perlevel 1 -o csa_gm.csv -qc "$SCT_BP_QC_FOLDER"
 # OPTIONAL: Update template registration using information from gray matter segmentation
 # # <<<
 # # Register WM/GM template to WM/GM seg
@@ -182,26 +133,20 @@ sct_process_segmentation -i ${SCT_out_dir}/t2s_deepseg_GM.nii.gz \
 # # Warp template (this time corrected for internal structure)
 # sct_warp_template -d t2s.nii.gz -w warp_template2t2s.nii.gz
 # # >>>
+cd ..
 
 # t1
 # ===========================================================================================
 #This isn't needed? Maybe if  the quality fails on T2w?
+cd t1
 # Segment spinal cord
-sct_deepseg_sc -i ${SCT_data_dir}/anat/sub-001_acq-spine_run-1_T1w.nii.gz \
--c t1 \
--kernel 3d \
--o ${SCT_out_dir}/t1_deepseg.nii.gz \
--qc "$SCT_BP_QC_FOLDER"
-
+sct_deepseg_sc -i t1.nii.gz -c t1 -qc "$SCT_BP_QC_FOLDER"
 # Smooth spinal cord along superior-inferior axis
-sct_smooth_spinalcord -i ${SCT_data_dir}/anat/sub-001_acq-spine_run-1_T1w.nii.gz \
--s ${SCT_out_dir}/t1_deepseg.nii.gz
+sct_smooth_spinalcord -i t1.nii.gz -s t1_seg.nii.gz
 # Flatten cord in the right-left direction (to make nice figure)
-sct_flatten_sagittal -i ${SCT_data_dir}/anat/sub-001_acq-spine_run-1_T1w.nii.gz \
- -s ${SCT_out_dir}/t1_deepseg.nii.gz
-
-
-exit 0 
+sct_flatten_sagittal -i t1.nii.gz -s t1_seg.nii.gz
+# Go back to root folder
+cd ..
 # mt
 # ===========================================================================================
 cd mt
@@ -237,9 +182,9 @@ sct_register_multimodal -i t1w.nii.gz -d mt1_crop.nii.gz -dseg mt1_crop_seg.nii.
 sct_compute_mtsat -mt mt1_crop.nii.gz -pd mt0_reg.nii.gz -t1 t1w_reg.nii.gz -trmt 30 -trpd 30 -trt1 15 -famt 9 -fapd 9 -fat1 15
 # Extract MTR, T1 and MTsat within the white matter between C2 and C5.
 # Tips: Here we use "-discard-neg-val 1" to discard inconsistent negative values in MTR calculation which are caused by noise.
-sct_extract_metric -i mtr.nii.gz -method map -o mtr_in_wm.csv -l 51 -vert 2:5
-sct_extract_metric -i mtsat.nii.gz -method map -o mtsat_in_wm.csv -l 51 -vert 2:5
-sct_extract_metric -i t1map.nii.gz -method map -o t1_in_wm.csv -l 51 -vert 2:5
+sct_extract_metric -i mtr.nii.gz -method map -o mtr_in_wm.csv -l 51 -vert 2:5 
+sct_extract_metric -i mtsat.nii.gz -method map -o mtsat_in_wm.csv -l 51 -vert 2:5 
+sct_extract_metric -i t1map.nii.gz -method map -o t1_in_wm.csv -l 51 -vert 2:5 
 # Bring MTR to template space (e.g. for group mapping)
 sct_apply_transfo -i mtr.nii.gz -d $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -w warp_mt2template.nii.gz
 # Go back to root folder
@@ -261,6 +206,7 @@ sct_crop_image -i dmri.nii.gz -m mask_dmri_mean.nii.gz -o dmri_crop.nii.gz
 sct_dmri_moco -i dmri_crop.nii.gz -bvec bvecs.txt
 # segmentation with propseg
 sct_deepseg_sc -i dmri_crop_moco_dwi_mean.nii.gz -c dwi -qc "$SCT_BP_QC_FOLDER"
+sct_deepseg_sc -i dmri_crop_moco_dwi_mean.nii.gz -kernel 3d -c dwi -qc "$SCT_BP_QC_FOLDER"
 # Generate QC for sct_dmri_moco ('dmri_crop_moco_dwi_mean_seg.nii.gz' is needed to align each slice in the QC mosaic)
 sct_qc -i dmri_crop.nii.gz -d dmri_crop_moco.nii.gz -s dmri_crop_moco_dwi_mean_seg.nii.gz -p sct_dmri_moco -qc "$SCT_BP_QC_FOLDER"
 # Register template to dwi
@@ -279,6 +225,7 @@ sct_extract_metric -i dti_FA.nii.gz -z 2:14 -method wa -l 4,5 -o fa_in_cst.csv
 # Bring metric to template space (e.g. for group mapping)
 sct_apply_transfo -i dti_FA.nii.gz -d $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -w warp_dmri2template.nii.gz
 
+cd ..
 
 # Display results (to easily compare integrity across SCT versions)
 # ===========================================================================================
