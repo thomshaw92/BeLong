@@ -31,8 +31,10 @@ ${singularity}/run_2_qsm.py --two_pass ${out_dir}/01_bids ${out_dir}/02_qsm_outp
 #3. Segment data (T1 and GRE):
 ${singularity}/run_3_segment.py ${out_dir}/01_bids ${out_dir}/03_segmentation
 #4. Build magnitude and QSM group template (only makes sense when you have more than about 30 participants):
-${singularity}/run_4_template.py ${out_dir}/01_bids ${out_dir}/02_qsm_output ${out_dir}/04_template
+#${singularity}/run_4_template.py ${out_dir}/01_bids ${out_dir}/02_qsm_output ${out_dir}/04_template
 #5. Export quantitative data to CSV using segmentations
 ${singularity}/run_5_analysis.py --labels_file ${script_dir}//QSMxT/aseg_labels.csv \
 --segmentations ${out_dir}/03_segmentation/qsm_segmentations/*.nii --qsm_files ${out_dir}/02_qsm_output/qsm_final/*/*.nii \
 --out_dir ${out_dir}/06_analysis
+#cleanup
+rm -r ${out_dir}/raw_data_condensed ${out_dir}/00_dicom
