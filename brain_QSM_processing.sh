@@ -22,6 +22,9 @@ for file in ${raw_data_dir}/*MPRAGE_0p8 ; do
 done
 
 ${singularity}/run_0_dicomSort.py ${out_dir}/raw_data_condensed ${out_dir}/00_dicom
+#fix weird naming thing
+mv ${out_dir}/00_dicom/sub-${subjName} ${out_dir}/00_dicom/${subjName}
+#convert to bids
 ${singularity}/run_1_dicomToBids.py ${out_dir}/00_dicom ${out_dir}/01_bids
 #After this step check if the data were correctly recognized and converted to BIDS. Otherwise make a copy of /opt/QSMxT/bidsmap.yaml
 # - adjust based on provenance example in 01_bids/code/bidscoin/bidsmap.yaml (see for example what it detected under extra_files) 
