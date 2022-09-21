@@ -1,0 +1,3834 @@
+# --------------------------------------------------------------------------------
+# This is a bidsmap YAML file with the key-value mappings for the different BIDS
+# datatypes (anat, func, dwi, etc). The datatype attributes are the keys that map
+# onto the BIDS labels. The bidsmap data-structure should be 5 levels deep:
+#
+# dict       : dict     : list     : dict        : dict
+# dataformat : datatype : run-item : bidsmapping : mapping-data
+#
+# NB:
+# 1) Edit the bidsmap file to your needs before feeding it to bidscoiner.py
+# 2) (Institute) users may create their own bidsmap_[template].yaml or
+#    bidsmap_[sample].yaml file
+#
+# For more information, see: https://bidscoin.readthedocs.io
+# --------------------------------------------------------------------------------
+
+
+Options:
+# --------------------------------------------------------------------------------
+# General options and plugins
+# --------------------------------------------------------------------------------
+  bidscoin:
+    version: 3.7.2                  # BIDScoin version (should correspond with the version in ../bidscoin/version.txt)
+    bidsignore: mrs/;extra_data/    # Semicolon-separated list of entries that are added to the .bidsignore file (for more info, see BIDS specifications), e.g. extra_data/;pet/;myfile.txt;yourfile.csv
+    subprefix: sub-                 # The subject prefix of the source data
+    sesprefix: ses-                 # The session prefix of the source data
+    datatypes: [fmap, anat, func, perf, dwi, pet, eeg, ieeg]  # A list of datatypes that are converted to BIDS (useful for skipping data)
+    unknowntypes: [mrs, extra_data] # A list of datatypes that are converted to BIDS-like datatype folders
+    ignoretypes: [exclude]          # A list of datatypes that are excluded / not converted to BIDS
+  plugins:                          # List of plugins with plugin-specific key-value pairs (that can be used by the plugin)
+    dcm2niix2bids:                  # See dcm2niix -h and https://www.nitrc.org/plugins/mwiki/index.php/dcm2nii:MainPage#General_Usage for more info
+      command: module add dcm2niix; dcm2niix # Command to run dcm2niix, e.g. "module add dcm2niix/1.0.20180622; dcm2niix" or "PATH=/opt/dcm2niix/bin:$PATH; dcm2niix" or /opt/dcm2niix/bin/dcm2niix or '"C:\Program Files\dcm2niix\dcm2niix.exe"' (use quotes to deal with whitespaces in the path)
+      args: -b y -z y -i n          # Argument string that is passed to dcm2niix. Tip: SPM users may want to use '-z n' (which produces unzipped nifti's, see dcm2niix -h for more information)
+      anon: y                       # Set this anonymization flag to 'y' to round off age and discard acquisition date from the meta data
+      meta: [.json, .tsv, .tsv.gz]  # The file extensions of the equally named metadata sourcefiles that are copied over to the BIDS sidecar files
+    spec2nii2bids:                  # The settings for the spec2nii2bids plugin
+      command: spec2nii             # Command to run spec2nii, e.g. "module add spec2nii; spec2nii" or "PATH=/opt/spec2nii/bin:$PATH; spec2nii" or /opt/spec2nii/bin/spec2nii or '"C:\Program Files\spec2nii\spec2nii.exe"' (note the quotes to deal with the whitespace)
+      args:                         # Argument string that is passed to spec2nii (see spec2nii -h for more information)
+      anon: y                       # Set this anonymization flag to 'y' to round off age and discard acquisition date from the meta data
+      meta: [.json, .tsv, .tsv.gz]  # The file extensions of the equally named metadata sourcefiles that are copied over to the BIDS sidecar files
+      multiraid: 2                  # The mapVBVD argument for selecting the multiraid Twix file to load (default = 2, i.e. 2nd file)
+#    phys2bidscoin:                  # The settings for the phys2bidscoin plugin
+
+
+DICOM:
+# --------------------------------------------------------------------------------
+# DICOM key-value heuristics (DICOM fields that are mapped to the BIDS labels)
+# --------------------------------------------------------------------------------
+  subject: <<filepath:/sub-(.*?)/>>   # This filesystem property extracts the subject label from the source directory. NB: Any property or attribute can be used as subject-label, e.g. <PatientID>
+  session: <<filepath:/ses-(.*?)/>>   # This filesystem property extracts the subject label from the source directory. NB: Any property or attribute can be used as session-label, e.g. <StudyID>
+
+  anat:       # ----------------------- All anatomical runs --------------------
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/002-T1w/SUB-009_SUB-009.MR.RESEARCH_TOM.0002.0001.2021.10.26.15.46.19.372459.235977909.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: T1w
+      MRAcquisitionType: 3D
+      Modality: MR
+      SeriesDescription: T1w
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS3D', 'DIS2D']"
+      SequenceName: .tfl3d1_16
+      SequenceVariant: "['SK', 'SP', 'MP']"
+      ScanningSequence: "['GR', 'IR']"
+      SliceThickness: '1'
+      FlipAngle: '9'
+      EchoNumbers: '1'
+      EchoTime: '3.72'
+      RepetitionTime: '2000'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: ''
+      ce:
+      rec:
+      run: <<1>>
+      part: ['', mag, phase, real, imag, 0]
+      suffix: T1w
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/009-GRE-T1w/SUB-009_SUB-009.MR.RESEARCH_TOM.0009.0001.2021.10.26.15.46.19.372459.235999807.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: GRE-T1w
+      Modality: MR
+      SeriesDescription: GRE-T1w
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS2D']"
+      SequenceName: .fl3d1
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '5'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '3.13'
+      RepetitionTime: '15'
+      PhaseEncodingDirection: ''
+    bids:
+      suffix: MTS
+      acq: T1w
+      ce:
+      rec:
+      run: <<1>>
+      echo:
+      flip:
+      mt:
+      part: ['', mag, phase, real, imag, 0]
+    meta: {}
+  - provenance: /tmp/tmpx6sg33b1/sub-012/ses-01/SE000007/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: t1_flair_sag
+      ScanningSequence: "['SE', 'IR']"
+      Modality: MR
+      SeriesDescription: t1_flair_sag
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'NORM']"
+      SequenceName: .tir2d1_6
+      SequenceVariant: "['SK', 'SP', 'MP', 'OSP']"
+      MRAcquisitionType: 2D
+      SliceThickness: '5.0'
+      FlipAngle: '150.0'
+      EchoNumbers: '1'
+      EchoTime: '9.5'
+      RepetitionTime: '1500.0'
+      PhaseEncodingDirection: ''
+    bids:
+      suffix: FLAIR
+      acq: t1flairsag
+      ce:
+      rec:
+      run: <<1>>
+      part: ['', mag, phase, real, imag, 0]
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-015/ses-01/015-GRE-T1w/SUB-015.MR.RESEARCH_21034_BELONG.0015.0001.2022.02.23.11.00.35.57835.277872085.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: GRE-T1w
+      Modality: MR
+      SeriesDescription: GRE-T1w
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS2D']"
+      SequenceName: .fl3d1
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '5'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '3.65'
+      RepetitionTime: '15'
+      PhaseEncodingDirection: ''
+    bids:
+      suffix: MTS
+      acq: T1w
+      ce:
+      rec:
+      run: <<1>>
+      echo:
+      flip:
+      mt:
+      part: ['', mag, phase, real, imag, 0]
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/005-T2w/SUB-009_SUB-009.MR.RESEARCH_TOM.0005.0001.2021.10.26.15.46.19.372459.235988155.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: T2w
+      SequenceVariant: "['SK', 'SP', 'OSP']"
+      Modality: MR
+      SeriesDescription: T2w
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS3D', 'DIS2D']"
+      SequenceName: .spcR_100
+      ScanningSequence: SE
+      MRAcquisitionType: 3D
+      SliceThickness: '0.80000001192093'
+      FlipAngle: '120'
+      EchoNumbers: '1'
+      EchoTime: '120'
+      RepetitionTime: '1500'
+      PhaseEncodingDirection: ''
+    bids:
+      suffix: T2w
+      acq: ''
+      ce:
+      rec:
+      run: <<1>>
+      part: ['', mag, phase, real, imag, 0]
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/007-GRE-MT1/SUB-009_SUB-009.MR.RESEARCH_TOM.0007.0001.2021.10.26.15.46.19.372459.235995644.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: GRE-MT1
+      Modality: MR
+      SeriesDescription: GRE-MT1
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'DIS2D']"
+      SequenceName: .fl3d1
+      SequenceVariant: "['MTC', 'SP']"
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '5'
+      FlipAngle: '9'
+      EchoNumbers: '1'
+      EchoTime: '3.13'
+      RepetitionTime: '35'
+      PhaseEncodingDirection: ''
+    bids:
+      suffix: MTS
+      acq: MTon
+      ce:
+      rec: ''
+      run: <<1>>
+      echo:
+      flip:
+      mt:
+      part: ['', mag, phase, real, imag, 0]
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/008-GRE-MT0/SUB-009_SUB-009.MR.RESEARCH_TOM.0008.0001.2021.10.26.15.46.19.372459.235997694.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: GRE-MT0
+      Modality: MR
+      SeriesDescription: GRE-MT0
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'DIS2D']"
+      SequenceName: .fl3d1
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '5'
+      FlipAngle: '9'
+      EchoNumbers: '1'
+      EchoTime: '3.13'
+      RepetitionTime: '35'
+      PhaseEncodingDirection: ''
+    bids:
+      suffix: MTS
+      acq: MToff
+      ce:
+      rec: ''
+      run: <<1>>
+      echo:
+      flip:
+      mt: ''
+      part: ['', mag, phase, real, imag, 0]
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-015/ses-01/013-GRE-MT1/SUB-015.MR.RESEARCH_21034_BELONG.0013.0001.2022.02.23.11.00.35.57835.277867985.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: GRE-MT1
+      Modality: MR
+      SeriesDescription: GRE-MT1
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'DIS2D']"
+      SequenceName: .fl3d1
+      SequenceVariant: "['MTC', 'SP']"
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '5'
+      FlipAngle: '9'
+      EchoNumbers: '1'
+      EchoTime: '3.65'
+      RepetitionTime: '35'
+      PhaseEncodingDirection: ''
+    bids:
+      suffix: MTS
+      acq: MTon
+      ce:
+      rec: ''
+      run: <<1>>
+      echo:
+      flip:
+      mt:
+      part: ['', mag, phase, real, imag, 0]
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-015/ses-01/014-GRE-MT0/SUB-015.MR.RESEARCH_21034_BELONG.0014.0001.2022.02.23.11.00.35.57835.277871059.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: GRE-MT0
+      Modality: MR
+      SeriesDescription: GRE-MT0
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'DIS2D']"
+      SequenceName: .fl3d1
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '5'
+      FlipAngle: '9'
+      EchoNumbers: '1'
+      EchoTime: '3.65'
+      RepetitionTime: '35'
+      PhaseEncodingDirection: ''
+    bids:
+      suffix: MTS
+      acq: MToff
+      ce:
+      rec:
+      run: <<1>>
+      echo:
+      flip:
+      mt:
+      part: ['', mag, phase, real, imag, 0]
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/010-GRE-ME/SUB-009_SUB-009.MR.RESEARCH_TOM.0010.0001.2021.10.26.15.46.19.372459.236002608.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: GRE-ME
+      Modality: MR
+      SeriesDescription: GRE-ME
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS2D']"
+      SequenceName: .me2d1r3
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '30'
+      EchoNumbers: '1'
+      EchoTime: '14'
+      RepetitionTime: '600'
+      PhaseEncodingDirection: ''
+    bids:
+      suffix: T2starw
+      acq: ''
+      ce:
+      rec: ''
+      run: <<1>>
+      part: ['', mag, phase, real, imag, 0]
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/036-T2w/SUB-016.MR.RESEARCH_21034_BELONG.0036.0001.2022.03.17.10.30.51.628297.284775533.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: T2w
+      SequenceVariant: "['SK', 'SP', 'OSP']"
+      Modality: MR
+      SeriesDescription: T2w
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS3D', 'DIS2D']"
+      SequenceName: .spcR_100
+      ScanningSequence: SE
+      MRAcquisitionType: 3D
+      SliceThickness: '0.80000001192093'
+      FlipAngle: '120'
+      EchoNumbers: '1'
+      EchoTime: '120'
+      RepetitionTime: '1560'
+      PhaseEncodingDirection: ''
+    bids:
+      suffix: T2w
+      acq: ''
+      ce:
+      rec:
+      run: <<1>>
+      part: ['', mag, phase, real, imag, 0]
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/032-T2w-C-Spine/SUB-017.MR.RESEARCH_21034_BELONG.0032.0001.2022.03.24.12.03.55.421102.288080985.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: T2w-C-Spine
+      SequenceVariant: "['SK', 'SP', 'OSP']"
+      Modality: MR
+      SeriesDescription: T2w-C-Spine
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS3D', 'DIS2D']"
+      SequenceName: .spcR_100
+      ScanningSequence: SE
+      MRAcquisitionType: 3D
+      SliceThickness: '0.80000001192093'
+      FlipAngle: '120'
+      EchoNumbers: '1'
+      EchoTime: '120'
+      RepetitionTime: '1500'
+      PhaseEncodingDirection: ''
+    bids:
+      suffix: T2w
+      acq: ''
+      ce:
+      rec:
+      run: <<1>>
+      part: ['', mag, phase, real, imag, 0]
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/033-GRE-ME-C-Spine/SUB-017.MR.RESEARCH_21034_BELONG.0033.0001.2022.03.24.12.03.55.421102.288090394.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: GRE-ME-C-Spine
+      Modality: MR
+      SeriesDescription: GRE-ME-C-Spine
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS2D']"
+      SequenceName: .me2d1r3
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '30'
+      EchoNumbers: '1'
+      EchoTime: '14'
+      RepetitionTime: '600'
+      PhaseEncodingDirection: ''
+    bids:
+      suffix: T2starw
+      acq: ''
+      ce:
+      rec: ''
+      run: <<1>>
+      part: ['', mag, phase, real, imag, 0]
+    meta: {}
+  func:       # ----------------------- All functional runs --------------------
+  perf:       # ----------------------- All perfusion runs ---------------------
+  dwi:        # ----------------------- All diffusion runs ---------------------
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/006-DWI/SUB-009_SUB-009.MR.RESEARCH_TOM.0006.0001.2021.10.26.15.46.19.372459.235992255.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: DWI
+      Modality: MR
+      SeriesDescription: DWI
+      ImageType: "['ORIGINAL', 'PRIMARY', 'DIFFUSION', 'NONE', 'ND', 'MOSAIC']"
+      SequenceName: .ez_b0
+      SequenceVariant: "['SK', 'SP']"
+      ScanningSequence: EP
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '90'
+      EchoNumbers: '1'
+      EchoTime: '60'
+      RepetitionTime: '610'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: ''
+      dir:
+      run: <<1>>
+      part: ['', mag, phase, real, imag, 0]
+      suffix: dwi
+    meta:
+      B0FieldSource:
+      B0FieldIdentifier:
+  fmap:     [] # ----------------------- All fieldmap runs ----------------------
+  pet:        # ----------------------- All PET runs ---------------------------
+  eeg:        # ----------------------- All EEG data ---------------------------
+  ieeg:       # ----------------------- All iEEG data --------------------------
+  extra_data: # ----------------------- All extra data -------------------------
+  - provenance: /tmp/tmpx6sg33b1/sub-012/ses-01/SE000004/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: t2_tirm_tra_dark-fluid FS
+      SeriesDescription: t2_tirm_tra_dark-fluid FS
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'NORM']"
+      SequenceName: .tirW2d1_26
+      SequenceVariant: "['SK', 'SP', 'MP', 'OSP']"
+      ScanningSequence: "['SE', 'IR']"
+      MRAcquisitionType: 2D
+      SliceThickness: '4.0'
+      FlipAngle: '150.0'
+      EchoNumbers: '1'
+      EchoTime: '109.0'
+      RepetitionTime: '8000.0'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: t2tirmtradarkfluidFS
+      rec: 2DORIGINALPRIMARYMNDNORM
+      ce:
+      task:
+      echo: '1'
+      dir:
+      run: <<1>>
+      mod: t2tirmtradarkfluidFS
+      part: &id001 ['', mag, phase, real, imag, 0]
+      suffix: SEIR
+    meta: {}
+  - provenance: /tmp/tmpx6sg33b1/sub-012/ses-01/SE000009/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: PR
+      ProtocolName: ''
+      SeriesDescription: Key Images
+      ImageType: ''
+      SequenceName: ''
+      SequenceVariant: ''
+      ScanningSequence: ''
+      MRAcquisitionType: ''
+      SliceThickness: ''
+      FlipAngle: ''
+      EchoNumbers: ''
+      EchoTime: ''
+      RepetitionTime: ''
+      PhaseEncodingDirection: ''
+    bids:
+      acq: ''
+      rec: ''
+      ce:
+      task:
+      echo: ''
+      dir:
+      run: <<1>>
+      mod: KeyImages
+      part: *id001
+      suffix: ''
+    meta: {}
+  - provenance: /tmp/tmpx6sg33b1/sub-012/ses-01/SE000011/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: t2_tse_tra
+      SeriesDescription: t2_tse_tra
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'NORM']"
+      SequenceName: .qtse2d1_17
+      SequenceVariant: "['SK', 'SP', 'OSP']"
+      ScanningSequence: SE
+      MRAcquisitionType: 2D
+      SliceThickness: '4.0'
+      FlipAngle: '150.0'
+      EchoNumbers: '1'
+      EchoTime: '95.0'
+      RepetitionTime: '6220.0'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: t2tsetra
+      rec: 2DORIGINALPRIMARYMNDNORM
+      ce:
+      task:
+      echo: '1'
+      dir:
+      run: <<1>>
+      mod: t2tsetra
+      part: *id001
+      suffix: SE
+    meta: {}
+  - provenance: /tmp/tmpx6sg33b1/sub-012/ses-01/SE000012/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: t2_swi3d_axial
+      SeriesDescription: Mag_Images
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS2D']"
+      SequenceName: .swi3d1r
+      SequenceVariant: "['SP', 'OSP']"
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '2.5'
+      FlipAngle: '15.0'
+      EchoNumbers: '1'
+      EchoTime: '20.0'
+      RepetitionTime: '27.0'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: t2swi3daxial
+      rec: 3DORIGINALPRIMARYMNORMDIS2D
+      ce:
+      task:
+      echo: '1'
+      dir:
+      run: <<1>>
+      mod: MagImages
+      part: *id001
+      suffix: GR
+    meta: {}
+  - provenance: /tmp/tmpx6sg33b1/sub-012/ses-01/SE000013/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: t2_swi3d_axial
+      SeriesDescription: Pha_Images
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'DIS2D']"
+      SequenceName: .swi3d1r
+      SequenceVariant: "['SP', 'OSP']"
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '2.5'
+      FlipAngle: '15.0'
+      EchoNumbers: '1'
+      EchoTime: '20.0'
+      RepetitionTime: '27.0'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: t2swi3daxial
+      rec: 3DORIGINALPRIMARYPDIS2D
+      ce:
+      task:
+      echo: '1'
+      dir:
+      run: <<1>>
+      mod: PhaImages
+      part: *id001
+      suffix: GR
+    meta: {}
+  - provenance: /tmp/tmpx6sg33b1/sub-012/ses-01/SE000014/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: t2_swi3d_axial
+      SeriesDescription: mIP_Images(SW)
+      ImageType: "['ORIGINAL', 'PRIMARY', 'MNIP', 'ND', 'NORM']"
+      SequenceName: .swi3d1r
+      SequenceVariant: "['SP', 'OSP']"
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '20.0'
+      FlipAngle: '15.0'
+      EchoNumbers: '1'
+      EchoTime: '20.0'
+      RepetitionTime: '27.0'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: t2swi3daxial
+      rec: 3DORIGINALPRIMARYMNIPNDNORM
+      ce:
+      task:
+      echo: '1'
+      dir:
+      run: <<1>>
+      mod: mIPImagesSW
+      part: *id001
+      suffix: GR
+    meta: {}
+  - provenance: /tmp/tmpx6sg33b1/sub-012/ses-01/SE000015/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: t2_swi3d_axial
+      SeriesDescription: SWI_Images
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'SWI', 'NORM', 'DIS2D']"
+      SequenceName: .swi3d1r
+      SequenceVariant: "['SP', 'OSP']"
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '2.5'
+      FlipAngle: '15.0'
+      EchoNumbers: '1'
+      EchoTime: '20.0'
+      RepetitionTime: '27.0'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: t2swi3daxial
+      rec: 3DORIGINALPRIMARYMSWINORMDIS2D
+      ce:
+      task:
+      echo: '1'
+      dir:
+      run: <<1>>
+      mod: SWIImages
+      part: *id001
+      suffix: GR
+    meta: {}
+  - provenance: /tmp/tmpx6sg33b1/sub-012/ses-01/SE000016/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: DOC
+      ProtocolName: ''
+      SeriesDescription: REPORT PDF
+      ImageType: ''
+      SequenceName: ''
+      SequenceVariant: ''
+      ScanningSequence: ''
+      MRAcquisitionType: ''
+      SliceThickness: ''
+      FlipAngle: ''
+      EchoNumbers: ''
+      EchoTime: ''
+      RepetitionTime: ''
+      PhaseEncodingDirection: ''
+    bids:
+      acq: ''
+      rec: ''
+      ce:
+      task:
+      echo: ''
+      dir:
+      run: <<1>>
+      mod: REPORTPDF
+      part: *id001
+      suffix: ''
+    meta: {}
+  exclude:    # ----------------------- Data that will be left out -------------
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/001-Localizer/SUB-009_SUB-009.MR.RESEARCH_TOM.0001.0001.2021.10.26.15.46.19.372459.235973811.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: Localizer
+      Modality: MR
+      SeriesDescription: Localizer
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS2D']"
+      SequenceName: .fl2d1
+      SequenceVariant: "['SP', 'OSP']"
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '6'
+      FlipAngle: '20'
+      EchoNumbers: '1'
+      EchoTime: '3.69'
+      RepetitionTime: '7.8'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: Localizer
+      rec: ORIGINALPRIMARYMNORMDIS2D
+      task: Localizer
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/041-AAHScout/SUB-009_SUB-009.MR.RESEARCH_TOM.0041.0001.2021.10.26.15.46.19.372459.236548309.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: AAHScout
+      Modality: MR
+      SeriesDescription: AAHScout
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'DIS2D']"
+      SequenceName: .fl3d1_ns
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.6000000238419'
+      FlipAngle: '8'
+      EchoNumbers: '1'
+      EchoTime: '1.37'
+      RepetitionTime: '3.15'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: AAHScout
+      rec: ORIGINALPRIMARYMDIS2D
+      task: AAHScout
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/042-AAHScout_MPR_sag/SUB-009_SUB-009.MR.RESEARCH_TOM.0042.0001.2021.10.26.15.46.19.372459.236550629.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: AAHScout
+      Modality: MR
+      SeriesDescription: AAHScout_MPR_sag
+      ImageType: "['DERIVED', 'PRIMARY', 'MPR', 'DIS2D']"
+      SequenceName: .fl3d1_ns
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.6000000238419'
+      FlipAngle: '8'
+      EchoNumbers: '1'
+      EchoTime: '1.37'
+      RepetitionTime: '3.15'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: AAHScout
+      rec: DERIVEDPRIMARYMPRDIS2D
+      task: AAHScoutMPRsag
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/043-AAHScout_MPR_cor/SUB-009_SUB-009.MR.RESEARCH_TOM.0043.0001.2021.10.26.15.46.19.372459.236550735.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: AAHScout
+      Modality: MR
+      SeriesDescription: AAHScout_MPR_cor
+      ImageType: "['DERIVED', 'PRIMARY', 'MPR', 'DIS2D']"
+      SequenceName: .fl3d1_ns
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.6000000238419'
+      FlipAngle: '8'
+      EchoNumbers: '1'
+      EchoTime: '1.37'
+      RepetitionTime: '3.15'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: AAHScout
+      rec: DERIVEDPRIMARYMPRDIS2D
+      task: AAHScoutMPRcor
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/044-AAHScout_MPR_tra/SUB-009_SUB-009.MR.RESEARCH_TOM.0044.0001.2021.10.26.15.46.19.372459.236550805.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: AAHScout
+      Modality: MR
+      SeriesDescription: AAHScout_MPR_tra
+      ImageType: "['DERIVED', 'PRIMARY', 'MPR', 'DIS2D']"
+      SequenceName: .fl3d1_ns
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.6000000238419'
+      FlipAngle: '8'
+      EchoNumbers: '1'
+      EchoTime: '1.37'
+      RepetitionTime: '3.15'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: AAHScout
+      rec: DERIVEDPRIMARYMPRDIS2D
+      task: AAHScoutMPRtra
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/047-NODDI_DTI_6b0_30b1000_60b2500_ADC/SUB-009_SUB-009.MR.RESEARCH_TOM.0047.0001.2021.10.26.15.46.19.372459.236563850.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ImageType: "['DERIVED', 'PRIMARY', 'DIFFUSION', 'ADC', 'ND', 'NORM']"
+      ProtocolName: NODDI_DTI_6b0_30b1000_60b2500
+      Modality: MR
+      SeriesDescription: NODDI_DTI_6b0_30b1000_60b2500_ADC
+      SequenceName: .ep_b0_2500
+      SequenceVariant: "['SK', 'SP']"
+      ScanningSequence: EP
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '90'
+      EchoNumbers: '1'
+      EchoTime: '75'
+      RepetitionTime: '4100'
+      PhaseEncodingDirection: ''
+    bids:
+      rec: DERIVED
+      acq: NODDIDTI6b030b100060b2500
+      task: NODDIDTI6b030b100060b2500ADC
+      echo: '1'
+      mod: 2D
+      suffix: EP
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/048-NODDI_DTI_6b0_30b1000_60b2500_TRACEW/SUB-009_SUB-009.MR.RESEARCH_TOM.0048.0001.2021.10.26.15.46.19.372459.236571686.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ImageType: "['DERIVED', 'PRIMARY', 'DIFFUSION', 'TRACEW', 'ND', 'NORM']"
+      ProtocolName: NODDI_DTI_6b0_30b1000_60b2500
+      Modality: MR
+      SeriesDescription: NODDI_DTI_6b0_30b1000_60b2500_TRACEW
+      SequenceName: .ep_b1000t
+      SequenceVariant: "['SK', 'SP']"
+      ScanningSequence: EP
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '90'
+      EchoNumbers: '1'
+      EchoTime: '75'
+      RepetitionTime: '4100'
+      PhaseEncodingDirection: ''
+    bids:
+      rec: DERIVED
+      acq: NODDIDTI6b030b100060b2500
+      task: NODDIDTI6b030b100060b2500TRACEW
+      echo: '1'
+      mod: 2D
+      suffix: EP
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/049-NODDI_DTI_6b0_30b1000_60b2500_FA/SUB-009_SUB-009.MR.RESEARCH_TOM.0049.0001.2021.10.26.15.46.19.372459.236587111.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ImageType: "['DERIVED', 'PRIMARY', 'DIFFUSION', 'FA', 'ND', 'NORM']"
+      ProtocolName: NODDI_DTI_6b0_30b1000_60b2500
+      Modality: MR
+      SeriesDescription: NODDI_DTI_6b0_30b1000_60b2500_FA
+      SequenceName: .ep_b0_2500
+      SequenceVariant: "['SK', 'SP']"
+      ScanningSequence: EP
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '90'
+      EchoNumbers: '1'
+      EchoTime: '75'
+      RepetitionTime: '4100'
+      PhaseEncodingDirection: ''
+    bids:
+      rec: DERIVED
+      acq: NODDIDTI6b030b100060b2500
+      task: NODDIDTI6b030b100060b2500FA
+      echo: '1'
+      mod: 2D
+      suffix: EP
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/050-NODDI_DTI_6b0_30b1000_60b2500_ColFA/SUB-009_SUB-009.MR.RESEARCH_TOM.0050.0001.2021.10.26.15.46.19.372459.236594832.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ImageType: "['DERIVED', 'PRIMARY', 'DIFFUSION', 'FA', 'ND', 'NORM']"
+      ProtocolName: NODDI_DTI_6b0_30b1000_60b2500
+      Modality: MR
+      SeriesDescription: NODDI_DTI_6b0_30b1000_60b2500_ColFA
+      SequenceName: ''
+      SequenceVariant: ''
+      ScanningSequence: ''
+      MRAcquisitionType: ''
+      SliceThickness: ''
+      FlipAngle: ''
+      EchoNumbers: ''
+      EchoTime: ''
+      RepetitionTime: ''
+      PhaseEncodingDirection: ''
+    bids:
+      rec: DERIVED
+      acq: NODDIDTI6b030b100060b2500
+      task: NODDIDTI6b030b100060b2500ColFA
+      echo: ''
+      mod: ''
+      suffix: ''
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/051-NODDI_DTI_6b0_30b1000_60b2500_TENSOR/SUB-009_SUB-009.MR.RESEARCH_TOM.0051.0001.2021.10.26.15.46.19.372459.236602971.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ImageType: "['DERIVED', 'PRIMARY', 'DIFFUSION', 'TENSOR', 'ND', 'NORM']"
+      ProtocolName: NODDI_DTI_6b0_30b1000_60b2500
+      Modality: MR
+      SeriesDescription: NODDI_DTI_6b0_30b1000_60b2500_TENSOR
+      SequenceName: ''
+      SequenceVariant: ''
+      ScanningSequence: ''
+      MRAcquisitionType: ''
+      SliceThickness: ''
+      FlipAngle: ''
+      EchoNumbers: ''
+      EchoTime: ''
+      RepetitionTime: ''
+      PhaseEncodingDirection: ''
+    bids:
+      rec: DERIVED
+      acq: NODDIDTI6b030b100060b2500
+      task: NODDIDTI6b030b100060b2500TENSOR
+      echo: ''
+      mod: ''
+      suffix: ''
+    meta: {}
+  - provenance: /tmp/tmpx6sg33b1/sub-012/ses-01/SE000002/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ImageType: "['DERIVED', 'PRIMARY', 'DIFFUSION', 'TRACEW', 'ND', 'NORM']"
+      ProtocolName: ep2d_diff_3scan_trace_p2
+      Modality: MR
+      SeriesDescription: ep2d_diff_3scan_trace_p2_TRACEW
+      SequenceName: .ep_b0
+      SequenceVariant: "['SK', 'SP']"
+      ScanningSequence: EP
+      MRAcquisitionType: 2D
+      SliceThickness: '4.0'
+      FlipAngle: '90.0'
+      EchoNumbers: '1'
+      EchoTime: '83.0'
+      RepetitionTime: '5000.0'
+      PhaseEncodingDirection: ''
+    bids:
+      rec: DERIVED
+      acq: ep2ddiff3scantracep2
+      task: ep2ddiff3scantracep2TRACEW
+      echo: '1'
+      mod: 2D
+      suffix: EP
+    meta: {}
+  - provenance: /tmp/tmpx6sg33b1/sub-012/ses-01/SE000003/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: AAHead_Scout
+      Modality: MR
+      SeriesDescription: AAHead_Scout_MPR_sag
+      ImageType: "['DERIVED', 'PRIMARY', 'MPR', 'ND', 'NORM']"
+      SequenceName: .fl3d1_ns
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.6'
+      FlipAngle: '8.0'
+      EchoNumbers: '1'
+      EchoTime: '1.37'
+      RepetitionTime: '3.15'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: AAHeadScout
+      rec: DERIVEDPRIMARYMPRNDNORM
+      task: AAHeadScoutMPRsag
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /tmp/tmpx6sg33b1/sub-012/ses-01/SE000005/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: AAHead_Scout
+      Modality: MR
+      SeriesDescription: AAHead_Scout
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'NORM']"
+      SequenceName: .fl3d1_ns
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.6'
+      FlipAngle: '8.0'
+      EchoNumbers: '1'
+      EchoTime: '1.37'
+      RepetitionTime: '3.15'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: AAHeadScout
+      rec: ORIGINALPRIMARYMNDNORM
+      task: AAHeadScout
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /tmp/tmpx6sg33b1/sub-012/ses-01/SE000006/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: AAHead_Scout
+      Modality: MR
+      SeriesDescription: AAHead_Scout_MPR_tra
+      ImageType: "['DERIVED', 'PRIMARY', 'MPR', 'ND', 'NORM']"
+      SequenceName: .fl3d1_ns
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.6'
+      FlipAngle: '8.0'
+      EchoNumbers: '1'
+      EchoTime: '1.37'
+      RepetitionTime: '3.15'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: AAHeadScout
+      rec: DERIVEDPRIMARYMPRNDNORM
+      task: AAHeadScoutMPRtra
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /tmp/tmpx6sg33b1/sub-012/ses-01/SE000008/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: AAHead_Scout
+      Modality: MR
+      SeriesDescription: AAHead_Scout_MPR_cor
+      ImageType: "['DERIVED', 'PRIMARY', 'MPR', 'ND', 'NORM']"
+      SequenceName: .fl3d1_ns
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.6'
+      FlipAngle: '8.0'
+      EchoNumbers: '1'
+      EchoTime: '1.37'
+      RepetitionTime: '3.15'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: AAHeadScout
+      rec: DERIVEDPRIMARYMPRNDNORM
+      task: AAHeadScoutMPRcor
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /tmp/tmpx6sg33b1/sub-012/ses-01/SE000010/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ImageType: "['DERIVED', 'PRIMARY', 'DIFFUSION', 'ADC', 'ND', 'NORM']"
+      ProtocolName: ep2d_diff_3scan_trace_p2
+      Modality: MR
+      SeriesDescription: ep2d_diff_3scan_trace_p2_ADC
+      SequenceName: .ep_b0_1000
+      SequenceVariant: "['SK', 'SP']"
+      ScanningSequence: EP
+      MRAcquisitionType: 2D
+      SliceThickness: '4.0'
+      FlipAngle: '90.0'
+      EchoNumbers: '1'
+      EchoTime: '83.0'
+      RepetitionTime: '5000.0'
+      PhaseEncodingDirection: ''
+    bids:
+      rec: DERIVED
+      acq: ep2ddiff3scantracep2
+      task: ep2ddiff3scantracep2ADC
+      echo: '1'
+      mod: 2D
+      suffix: EP
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-013/ses-01/027-AAHScout/SUB-013.MR.RESEARCH_TOM.0027.0001.2021.12.01.10.14.59.735540.258499693.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: AAHScout
+      Modality: MR
+      SeriesDescription: AAHScout
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND']"
+      SequenceName: .fl3d1_ns
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.6000000238419'
+      FlipAngle: '8'
+      EchoNumbers: '1'
+      EchoTime: '1.37'
+      RepetitionTime: '3.15'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: AAHScout
+      rec: ORIGINALPRIMARYMND
+      task: AAHScout
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-013/ses-01/028-AAHScout_MPR_sag/SUB-013.MR.RESEARCH_TOM.0028.0001.2021.12.01.10.14.59.735540.258502013.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: AAHScout
+      Modality: MR
+      SeriesDescription: AAHScout_MPR_sag
+      ImageType: "['DERIVED', 'PRIMARY', 'MPR', 'ND']"
+      SequenceName: .fl3d1_ns
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.6000000238419'
+      FlipAngle: '8'
+      EchoNumbers: '1'
+      EchoTime: '1.37'
+      RepetitionTime: '3.15'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: AAHScout
+      rec: DERIVEDPRIMARYMPRND
+      task: AAHScoutMPRsag
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-013/ses-01/029-AAHScout_MPR_cor/SUB-013.MR.RESEARCH_TOM.0029.0001.2021.12.01.10.14.59.735540.258502119.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: AAHScout
+      Modality: MR
+      SeriesDescription: AAHScout_MPR_cor
+      ImageType: "['DERIVED', 'PRIMARY', 'MPR', 'ND']"
+      SequenceName: .fl3d1_ns
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.6000000238419'
+      FlipAngle: '8'
+      EchoNumbers: '1'
+      EchoTime: '1.37'
+      RepetitionTime: '3.15'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: AAHScout
+      rec: DERIVEDPRIMARYMPRND
+      task: AAHScoutMPRcor
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-013/ses-01/030-AAHScout_MPR_tra/SUB-013.MR.RESEARCH_TOM.0030.0001.2021.12.01.10.14.59.735540.258502189.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      ProtocolName: AAHScout
+      Modality: MR
+      SeriesDescription: AAHScout_MPR_tra
+      ImageType: "['DERIVED', 'PRIMARY', 'MPR', 'ND']"
+      SequenceName: .fl3d1_ns
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.6000000238419'
+      FlipAngle: '8'
+      EchoNumbers: '1'
+      EchoTime: '1.37'
+      RepetitionTime: '3.15'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: AAHScout
+      rec: DERIVEDPRIMARYMPRND
+      task: AAHScoutMPRtra
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/011-Aspire_Qmetric_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_ne/SUB-009_SUB-009.MR.RESEARCH_TOM.0011.0001.2021.10.26.15.46.19.372459.236004553.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: Aspire_Qmetric_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_ne
+      ImageType: ''
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '2.35'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: 3D
+      task: AspireQmetric3dbipolarinphaseC2PGRE16MEaspire1mmisone
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/012-Aspire_M_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-009_SUB-009.MR.RESEARCH_TOM.0012.0001.2021.10.26.15.46.19.372459.236007970.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: Aspire_M_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'ASPIRE']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '2.35'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMNDASPIRE
+      task: AspireM3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/013-Aspire_P_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-009_SUB-009.MR.RESEARCH_TOM.0013.0001.2021.10.26.15.46.19.372459.236011369.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: Aspire_P_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'ND', 'ASPIRE']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '2.35'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYPNDASPIRE
+      task: AspireP3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/014-3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-009_SUB-009.MR.RESEARCH_TOM.0014.0001.2021.10.26.15.46.19.372459.236014768.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'NORM']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '2.35'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMNDNORM
+      task: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/015-3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-009_SUB-009.MR.RESEARCH_TOM.0015.0001.2021.10.26.15.46.19.372459.236018167.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'ND']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '2.35'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYPND
+      task: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/016-R2star_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-009_SUB-009.MR.RESEARCH_TOM.0016.2161.2021.10.26.15.46.19.372459.236021754.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: R2star_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '16'
+      EchoTime: '36.8'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMND
+      task: R2star3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '16'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/018-Aspire_Qmetric_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2/SUB-009_SUB-009.MR.RESEARCH_TOM.0018.0001.2021.10.26.15.46.19.372459.236238027.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      SeriesDescription: Aspire_Qmetric_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      ImageType: ''
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '603'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72
+      rec: 2D
+      task: AspireQmetric2dbipolarinphaseGRE16MEaspirep7p72
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/017-T2star_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-009_SUB-009.MR.RESEARCH_TOM.0017.2161.2021.10.26.15.46.19.372459.236021967.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: T2star_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '16'
+      EchoTime: '36.8'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMND
+      task: T2star3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '16'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/019-Aspire_M_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2/SUB-009_SUB-009.MR.RESEARCH_TOM.0019.0001.2021.10.26.15.46.19.372459.236238636.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      SeriesDescription: Aspire_M_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'ASPIRE']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '603'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72
+      rec: ORIGINALPRIMARYMNDASPIRE
+      task: AspireM2dbipolarinphaseGRE16MEaspirep7p72
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/032-R2star_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-009_SUB-009.MR.RESEARCH_TOM.0032.2161.2021.10.26.15.46.19.372459.236296983.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: R2star_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'DIS2D']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '16'
+      EchoTime: '36.8'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMDIS2D
+      task: R2star3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '16'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-013/ses-01/002-FastView/SUB-013.MR.RESEARCH_TOM.0002.0001.2021.12.01.09.54.12.76178.258134494.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: FastView
+      SeriesDescription: FastView
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'DIS2D', 'COMPOSED']"
+      SequenceName: .fl2d_ct
+      SequenceVariant: "['SP', 'OSP']"
+      ScanningSequence: RM
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '0'
+      EchoNumbers: '1'
+      EchoTime: '1.44'
+      RepetitionTime: '2.56'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: FastView
+      rec: ORIGINALPRIMARYMDIS2DCOMPOSED
+      task: FastView
+      echo: '1'
+      mod: 2D
+      suffix: RM
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-013/ses-01/007-gre_field_mapping_2mm/SUB-013.MR.RESEARCH_TOM.0007.0001.2021.12.01.09.54.12.76178.258162781.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: gre_field_mapping_2mm
+      SeriesDescription: gre_field_mapping_2mm
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'ND']"
+      SequenceName: .fm2d2r
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '60'
+      EchoNumbers: '2'
+      EchoTime: '7.38'
+      RepetitionTime: '520'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: grefieldmapping2mm
+      rec: ORIGINALPRIMARYPND
+      task: grefieldmapping2mm
+      echo: '2'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/023-R2star_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2/SUB-009_SUB-009.MR.RESEARCH_TOM.0023.0226.2021.10.26.15.46.19.372459.236241032.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      SeriesDescription: R2star_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '16'
+      EchoTime: '36.8'
+      RepetitionTime: '603'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72
+      rec: ORIGINALPRIMARYMND
+      task: R2star2dbipolarinphaseGRE16MEaspirep7p72
+      echo: '16'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/024-T2star_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2/SUB-009_SUB-009.MR.RESEARCH_TOM.0024.0226.2021.10.26.15.46.19.372459.236241083.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      SeriesDescription: T2star_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '16'
+      EchoTime: '36.8'
+      RepetitionTime: '603'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72
+      rec: ORIGINALPRIMARYMND
+      task: T2star2dbipolarinphaseGRE16MEaspirep7p72
+      echo: '16'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/028-Aspire_M_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-009_SUB-009.MR.RESEARCH_TOM.0028.0001.2021.10.26.15.46.19.372459.236289952.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: Aspire_M_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ASPIRE', 'DIS2D']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '2.35'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMASPIREDIS2D
+      task: AspireM3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/029-Aspire_P_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-009_SUB-009.MR.RESEARCH_TOM.0029.0001.2021.10.26.15.46.19.372459.236291695.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: Aspire_P_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'ASPIRE', 'DIS2D']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '2.35'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYPASPIREDIS2D
+      task: AspireP3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/030-3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-009_SUB-009.MR.RESEARCH_TOM.0030.0001.2021.10.26.15.46.19.372459.236293438.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS2D']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '2.35'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMNORMDIS2D
+      task: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/031-3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-009_SUB-009.MR.RESEARCH_TOM.0031.0001.2021.10.26.15.46.19.372459.236295163.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'DIS2D']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '2.35'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYPDIS2D
+      task: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/020-Aspire_P_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2/SUB-009_SUB-009.MR.RESEARCH_TOM.0020.0001.2021.10.26.15.46.19.372459.236239227.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      SeriesDescription: Aspire_P_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'ND', 'ASPIRE']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '603'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72
+      rec: ORIGINALPRIMARYPNDASPIRE
+      task: AspireP2dbipolarinphaseGRE16MEaspirep7p72
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/021-2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2/SUB-009_SUB-009.MR.RESEARCH_TOM.0021.0001.2021.10.26.15.46.19.372459.236239818.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      SeriesDescription: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'NORM']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '603'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72
+      rec: ORIGINALPRIMARYMNDNORM
+      task: 2dbipolarinphaseGRE16MEaspirep7p72
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/022-2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2/SUB-009_SUB-009.MR.RESEARCH_TOM.0022.0001.2021.10.26.15.46.19.372459.236240409.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      SeriesDescription: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'ND']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '603'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72
+      rec: ORIGINALPRIMARYPND
+      task: 2dbipolarinphaseGRE16MEaspirep7p72
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/033-T2star_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-009_SUB-009.MR.RESEARCH_TOM.0033.2161.2021.10.26.15.46.19.372459.236297106.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: T2star_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'DIS2D']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '16'
+      EchoTime: '36.8'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMDIS2D
+      task: T2star3dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '16'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/045-B0_P-A/SUB-009_SUB-009.MR.RESEARCH_TOM.0045.0001.2021.10.26.15.46.19.372459.236553307.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: B0_P-A
+      SeriesDescription: B0_P-A
+      ImageType: "['ORIGINAL', 'PRIMARY', 'DIFFUSION', 'NONE', 'ND', 'NORM']"
+      SequenceName: .ep_b0
+      SequenceVariant: "['SK', 'SP']"
+      ScanningSequence: EP
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '90'
+      EchoNumbers: '1'
+      EchoTime: '75'
+      RepetitionTime: '4100'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: B0PA
+      rec: ORIGINALPRIMARYDIFFUSIONNONENDNORM
+      task: B0PA
+      echo: '1'
+      mod: 2D
+      suffix: EP
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-009/046-NODDI_DTI_6b0_30b1000_60b2500/SUB-009_SUB-009.MR.RESEARCH_TOM.0046.0001.2021.10.26.15.46.19.372459.236555481.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: NODDI_DTI_6b0_30b1000_60b2500
+      SeriesDescription: NODDI_DTI_6b0_30b1000_60b2500
+      ImageType: "['ORIGINAL', 'PRIMARY', 'DIFFUSION', 'NONE', 'ND', 'NORM', 'MOSAIC']"
+      SequenceName: .ep_b0
+      SequenceVariant: "['SK', 'SP']"
+      ScanningSequence: EP
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '90'
+      EchoNumbers: '1'
+      EchoTime: '75'
+      RepetitionTime: '4100'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: NODDIDTI6b030b100060b2500
+      rec: ORIGINALPRIMARYDIFFUSIONNONENDNORMMOSAIC
+      task: NODDIDTI6b030b100060b2500
+      echo: '1'
+      mod: 2D
+      suffix: EP
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-012/ses-02/SE000001/IM000001
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: CR
+      ProtocolName: ''
+      SeriesDescription: ''
+      ImageType: ''
+      SequenceName: ''
+      SequenceVariant: ''
+      ScanningSequence: ''
+      MRAcquisitionType: ''
+      SliceThickness: ''
+      FlipAngle: ''
+      EchoNumbers: ''
+      EchoTime: ''
+      RepetitionTime: ''
+      PhaseEncodingDirection: ''
+    bids:
+      acq: ''
+      rec: ''
+      task: ''
+      echo: ''
+      mod: ''
+      suffix: ''
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-013/ses-01/017-Aspire_Qmetric_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2/SUB-013.MR.RESEARCH_TOM.0017.0001.2021.12.01.10.08.04.152770.258429378.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      SeriesDescription: Aspire_Qmetric_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      ImageType: ''
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '643'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72
+      rec: 2D
+      task: AspireQmetric2dbipolarinphaseGRE16MEaspirep7p72
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-013/ses-01/018-Aspire_M_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2/SUB-013.MR.RESEARCH_TOM.0018.0001.2021.12.01.10.08.04.152770.258432441.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      SeriesDescription: Aspire_M_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ASPIRE', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '643'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72
+      rec: ORIGINALPRIMARYMASPIREDIS2D
+      task: AspireM2dbipolarinphaseGRE16MEaspirep7p72
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-013/ses-01/019-Aspire_P_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2/SUB-013.MR.RESEARCH_TOM.0019.0001.2021.12.01.10.08.04.152770.258435504.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      SeriesDescription: Aspire_P_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'ASPIRE', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '643'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72
+      rec: ORIGINALPRIMARYPASPIREDIS2D
+      task: AspireP2dbipolarinphaseGRE16MEaspirep7p72
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-013/ses-01/020-2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2/SUB-013.MR.RESEARCH_TOM.0020.0001.2021.12.01.10.08.04.152770.258438585.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      SeriesDescription: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '643'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72
+      rec: ORIGINALPRIMARYMNORMDIS2D
+      task: 2dbipolarinphaseGRE16MEaspirep7p72
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-013/ses-01/021-2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2/SUB-013.MR.RESEARCH_TOM.0021.0001.2021.12.01.10.08.04.152770.258441767.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      SeriesDescription: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '643'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72
+      rec: ORIGINALPRIMARYPDIS2D
+      task: 2dbipolarinphaseGRE16MEaspirep7p72
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-013/ses-01/022-R2star_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2/SUB-013.MR.RESEARCH_TOM.0022.0241.2021.12.01.10.08.04.152770.258443207.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      SeriesDescription: R2star_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '16'
+      EchoTime: '36.8'
+      RepetitionTime: '643'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72
+      rec: ORIGINALPRIMARYMDIS2D
+      task: R2star2dbipolarinphaseGRE16MEaspirep7p72
+      echo: '16'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-013/ses-01/023-T2star_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2/SUB-013.MR.RESEARCH_TOM.0023.0241.2021.12.01.10.08.04.152770.258443408.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      SeriesDescription: T2star_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '16'
+      EchoTime: '36.8'
+      RepetitionTime: '643'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72
+      rec: ORIGINALPRIMARYMDIS2D
+      task: T2star2dbipolarinphaseGRE16MEaspirep7p72
+      echo: '16'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-015/ses-01/033-2D t2_tirm_tra_dark-fluid/SUB-015.MR.RESEARCH_21034_BELONG.0033.0001.2022.02.23.11.44.08.325305.278023281.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2D t2_tirm_tra_dark-fluid
+      SeriesDescription: 2D t2_tirm_tra_dark-fluid
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'NORM']"
+      SequenceName: .tir2d1_13
+      SequenceVariant: "['SK', 'SP', 'MP']"
+      ScanningSequence: "['SE', 'IR']"
+      MRAcquisitionType: 2D
+      SliceThickness: '2.5'
+      FlipAngle: '150'
+      EchoNumbers: '1'
+      EchoTime: '92'
+      RepetitionTime: '9750'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2Dt2tirmtradarkfluid
+      rec: ORIGINALPRIMARYMNDNORM
+      task: 2Dt2tirmtradarkfluid
+      echo: '1'
+      mod: 2D
+      suffix: SEIR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/004-Aspire_Qmetric_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0004.0023.2022.03.17.10.30.51.628297.284477521.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: Aspire_Qmetric_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: ''
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '965'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: 2D
+      task: AspireQmetric2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/005-2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0005.0023.2022.03.17.10.30.51.628297.284477591.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '965'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: ORIGINALPRIMARYMNORMDIS2D
+      task: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/006-2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0006.0023.2022.03.17.10.30.51.628297.284477643.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '965'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: ORIGINALPRIMARYPDIS2D
+      task: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/007-Aspire_Qmetric_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_ax/SUB-016.MR.RESEARCH_21034_BELONG.0007.0127.2022.03.17.10.30.51.628297.284482643.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_ax
+      SeriesDescription: Aspire_Qmetric_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_ax
+      ImageType: ''
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '5150'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72ax
+      rec: 2D
+      task: AspireQmetric2dbipolarinphaseGRE16MEaspirep7p72ax
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/008-2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_ax/SUB-016.MR.RESEARCH_21034_BELONG.0008.0127.2022.03.17.10.30.51.628297.284482716.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_ax
+      SeriesDescription: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_ax
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '5150'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72ax
+      rec: ORIGINALPRIMARYMNORMDIS2D
+      task: 2dbipolarinphaseGRE16MEaspirep7p72ax
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/009-2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_ax/SUB-016.MR.RESEARCH_21034_BELONG.0009.0127.2022.03.17.10.30.51.628297.284482768.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_ax
+      SeriesDescription: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_ax
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '5150'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72ax
+      rec: ORIGINALPRIMARYPDIS2D
+      task: 2dbipolarinphaseGRE16MEaspirep7p72ax
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/010-Aspire_Qmetric_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0010.0001.2022.03.17.10.30.51.628297.284486997.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: Aspire_Qmetric_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: ''
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '643'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: 2D
+      task: AspireQmetric2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/011-Aspire_M_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0011.0001.2022.03.17.10.30.51.628297.284489892.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: Aspire_M_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ASPIRE', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '643'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: ORIGINALPRIMARYMASPIREDIS2D
+      task: AspireM2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/012-Aspire_P_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0012.0001.2022.03.17.10.30.51.628297.284492787.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: Aspire_P_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'ASPIRE', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '643'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: ORIGINALPRIMARYPASPIREDIS2D
+      task: AspireP2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/013-2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0013.0001.2022.03.17.10.30.51.628297.284495682.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '643'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: ORIGINALPRIMARYMNORMDIS2D
+      task: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/014-2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0014.0001.2022.03.17.10.30.51.628297.284498687.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '643'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: ORIGINALPRIMARYPDIS2D
+      task: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/015-R2star_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0015.0241.2022.03.17.10.30.51.628297.284499435.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: R2star_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '16'
+      EchoTime: '36.8'
+      RepetitionTime: '643'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: ORIGINALPRIMARYMDIS2D
+      task: R2star2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '16'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/016-T2star_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0016.0241.2022.03.17.10.30.51.628297.284499630.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: T2star_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '16'
+      EchoTime: '36.8'
+      RepetitionTime: '643'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: ORIGINALPRIMARYMDIS2D
+      task: T2star2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '16'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/026-Aspire_Qmetric_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0026.0019.2022.03.17.10.30.51.628297.284760159.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: Aspire_Qmetric_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: ''
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '804'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: 2D
+      task: AspireQmetric2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/027-2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0027.0019.2022.03.17.10.30.51.628297.284760229.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '804'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: ORIGINALPRIMARYMNORMDIS2D
+      task: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/028-2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0028.0019.2022.03.17.10.30.51.628297.284760281.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '804'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: ORIGINALPRIMARYPDIS2D
+      task: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/029-Aspire_Qmetric_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0029.0019.2022.03.17.10.30.51.628297.284763233.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: Aspire_Qmetric_2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: ''
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '850'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: 2D
+      task: AspireQmetric2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/030-2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0030.0019.2022.03.17.10.30.51.628297.284763306.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '850'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: ORIGINALPRIMARYMNORMDIS2D
+      task: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/031-2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag/SUB-016.MR.RESEARCH_21034_BELONG.0031.0019.2022.03.17.10.30.51.628297.284763358.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      SeriesDescription: 2d_bipolar-inphase_GRE_16ME_aspire_p7.p7.2_sag
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'DIS2D']"
+      SequenceName: fi2d16
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '2'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '2.74'
+      RepetitionTime: '850'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      rec: ORIGINALPRIMARYPDIS2D
+      task: 2dbipolarinphaseGRE16MEaspirep7p72sag
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-016/ses-01/038-ep2d_1.5_3x2_TR1110/SUB-016.MR.RESEARCH_21034_BELONG.0038.0001.2022.03.17.10.49.40.483863.284825713.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: ep2d_1.5_3x2_TR1110
+      SeriesDescription: ep2d_1.5_3x2_TR1110
+      ImageType: "['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE', 'ND', 'MOSAIC']"
+      SequenceName: .epfid2d1_128
+      SequenceVariant: SK
+      ScanningSequence: EP
+      MRAcquisitionType: 2D
+      SliceThickness: '1.5'
+      FlipAngle: '75'
+      EchoNumbers: '1'
+      EchoTime: '31'
+      RepetitionTime: '1500'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: ep2d153x2TR1110
+      rec: ORIGINALPRIMARYFMRINONENDMOSAIC
+      task: ep2d153x2TR1110
+      echo: '1'
+      mod: 2D
+      suffix: EP
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/004-Aspire_Qmetric_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso/SUB-017.MR.RESEARCH_21034_BELONG.0004.0001.2022.03.24.11.25.27.874118.287722577.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso
+      SeriesDescription: Aspire_Qmetric_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso
+      ImageType: ''
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '2.35'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmiso
+      rec: 3D
+      task: AspireQmetric3dbipolarinphaseC2PGRE16MEaspire1mmiso
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/005-Aspire_M_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso/SUB-017.MR.RESEARCH_21034_BELONG.0005.0001.2022.03.24.11.25.27.874118.287726192.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso
+      SeriesDescription: Aspire_M_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'ASPIRE']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '2.35'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmiso
+      rec: ORIGINALPRIMARYMNDASPIRE
+      task: AspireM3dbipolarinphaseC2PGRE16MEaspire1mmiso
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/006-Aspire_P_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso/SUB-017.MR.RESEARCH_21034_BELONG.0006.0001.2022.03.24.11.25.27.874118.287729789.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso
+      SeriesDescription: Aspire_P_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'ND', 'ASPIRE']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '2.35'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmiso
+      rec: ORIGINALPRIMARYPNDASPIRE
+      task: AspireP3dbipolarinphaseC2PGRE16MEaspire1mmiso
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/007-3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso/SUB-017.MR.RESEARCH_21034_BELONG.0007.0001.2022.03.24.11.25.27.874118.287733386.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso
+      SeriesDescription: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'NORM']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '2.35'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmiso
+      rec: ORIGINALPRIMARYMNDNORM
+      task: 3dbipolarinphaseC2PGRE16MEaspire1mmiso
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/008-3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso/SUB-017.MR.RESEARCH_21034_BELONG.0008.0001.2022.03.24.11.25.27.874118.287736983.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso
+      SeriesDescription: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'ND']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '1'
+      EchoTime: '2.35'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmiso
+      rec: ORIGINALPRIMARYPND
+      task: 3dbipolarinphaseC2PGRE16MEaspire1mmiso
+      echo: '1'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/009-R2star_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso/SUB-017.MR.RESEARCH_21034_BELONG.0009.2161.2022.03.24.11.25.27.874118.287740779.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso
+      SeriesDescription: R2star_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '16'
+      EchoTime: '36.8'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmiso
+      rec: ORIGINALPRIMARYMND
+      task: R2star3dbipolarinphaseC2PGRE16MEaspire1mmiso
+      echo: '16'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/010-T2star_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso/SUB-017.MR.RESEARCH_21034_BELONG.0010.2161.2022.03.24.11.25.27.874118.287741010.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso
+      SeriesDescription: T2star_3d-bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND']"
+      SequenceName: fl3d16
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 3D
+      SliceThickness: '1.0999999046326'
+      FlipAngle: '15'
+      EchoNumbers: '16'
+      EchoTime: '36.8'
+      RepetitionTime: '40'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 3dbipolarinphaseC2PGRE16MEaspire1mmiso
+      rec: ORIGINALPRIMARYMND
+      task: T2star3dbipolarinphaseC2PGRE16MEaspire1mmiso
+      echo: '16'
+      mod: 3D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/011-Aspire_Qmetric_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_ne/SUB-017.MR.RESEARCH_21034_BELONG.0011.0001.2022.03.24.11.25.27.874118.287986399.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: Aspire_Qmetric_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_ne
+      ImageType: ''
+      SequenceName: fi2d8
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '4.91'
+      RepetitionTime: '1330'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: 2D
+      task: AspireQmetric2dbipolarinphaseC2PGRE16MEaspire1mmisone
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/012-Aspire_M_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-017.MR.RESEARCH_21034_BELONG.0012.0001.2022.03.24.11.25.27.874118.287988146.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: Aspire_M_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'ASPIRE']"
+      SequenceName: fi2d8
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '4.91'
+      RepetitionTime: '1330'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMNDASPIRE
+      task: AspireM2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/013-Aspire_P_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-017.MR.RESEARCH_21034_BELONG.0013.0001.2022.03.24.11.25.27.874118.287989893.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: Aspire_P_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'ND', 'ASPIRE']"
+      SequenceName: fi2d8
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '4.91'
+      RepetitionTime: '1330'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYPNDASPIRE
+      task: AspireP2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/014-2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-017.MR.RESEARCH_21034_BELONG.0014.0001.2022.03.24.11.25.27.874118.287991640.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'NORM']"
+      SequenceName: fi2d8
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '4.91'
+      RepetitionTime: '1330'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMNDNORM
+      task: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/015-2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-017.MR.RESEARCH_21034_BELONG.0015.0001.2022.03.24.11.25.27.874118.287993473.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'ND']"
+      SequenceName: fi2d8
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '4.91'
+      RepetitionTime: '1330'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYPND
+      task: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/016-R2star_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-017.MR.RESEARCH_21034_BELONG.0016.0211.2022.03.24.11.25.27.874118.287994043.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: R2star_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND']"
+      SequenceName: fi2d8
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '8'
+      EchoTime: '40.06'
+      RepetitionTime: '1330'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMND
+      task: R2star2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '8'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/017-T2star_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-017.MR.RESEARCH_21034_BELONG.0017.0211.2022.03.24.11.25.27.874118.287994270.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: T2star_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND']"
+      SequenceName: fi2d8
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '8'
+      EchoTime: '40.06'
+      RepetitionTime: '1330'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMND
+      task: T2star2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '8'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/018-Aspire_Qmetric_2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm/SUB-017.MR.RESEARCH_21034_BELONG.0018.0001.2022.03.24.11.25.27.874118.288007181.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm
+      SeriesDescription: Aspire_Qmetric_2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm
+      ImageType: ''
+      SequenceName: fi2d4
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '4.91'
+      RepetitionTime: '726'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dNE4bipolarinphaseC2PGRE16MEaspire5mm
+      rec: 2D
+      task: AspireQmetric2dNE4bipolarinphaseC2PGRE16MEaspire5mm
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/019-Aspire_M_2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm/SUB-017.MR.RESEARCH_21034_BELONG.0019.0001.2022.03.24.11.25.27.874118.288008862.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm
+      SeriesDescription: Aspire_M_2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'ASPIRE']"
+      SequenceName: fi2d4
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '4.91'
+      RepetitionTime: '726'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dNE4bipolarinphaseC2PGRE16MEaspire5mm
+      rec: ORIGINALPRIMARYMNDASPIRE
+      task: AspireM2dNE4bipolarinphaseC2PGRE16MEaspire5mm
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/020-Aspire_P_2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm/SUB-017.MR.RESEARCH_21034_BELONG.0020.0001.2022.03.24.11.25.27.874118.288010526.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm
+      SeriesDescription: Aspire_P_2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'ND', 'ASPIRE']"
+      SequenceName: fi2d4
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '4.91'
+      RepetitionTime: '726'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dNE4bipolarinphaseC2PGRE16MEaspire5mm
+      rec: ORIGINALPRIMARYPNDASPIRE
+      task: AspireP2dNE4bipolarinphaseC2PGRE16MEaspire5mm
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/021-2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm/SUB-017.MR.RESEARCH_21034_BELONG.0021.0001.2022.03.24.11.25.27.874118.288012190.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm
+      SeriesDescription: 2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'NORM']"
+      SequenceName: fi2d4
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '4.91'
+      RepetitionTime: '726'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dNE4bipolarinphaseC2PGRE16MEaspire5mm
+      rec: ORIGINALPRIMARYMNDNORM
+      task: 2dNE4bipolarinphaseC2PGRE16MEaspire5mm
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/022-2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm/SUB-017.MR.RESEARCH_21034_BELONG.0022.0001.2022.03.24.11.25.27.874118.288013910.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm
+      SeriesDescription: 2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'ND']"
+      SequenceName: fi2d4
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '4.91'
+      RepetitionTime: '726'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dNE4bipolarinphaseC2PGRE16MEaspire5mm
+      rec: ORIGINALPRIMARYPND
+      task: 2dNE4bipolarinphaseC2PGRE16MEaspire5mm
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/023-R2star_2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm/SUB-017.MR.RESEARCH_21034_BELONG.0023.0091.2022.03.24.11.25.27.874118.288014901.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm
+      SeriesDescription: R2star_2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND']"
+      SequenceName: fi2d4
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '4'
+      EchoTime: '19.98'
+      RepetitionTime: '726'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dNE4bipolarinphaseC2PGRE16MEaspire5mm
+      rec: ORIGINALPRIMARYMND
+      task: R2star2dNE4bipolarinphaseC2PGRE16MEaspire5mm
+      echo: '4'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/024-T2star_2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm/SUB-017.MR.RESEARCH_21034_BELONG.0024.0091.2022.03.24.11.25.27.874118.288015324.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm
+      SeriesDescription: T2star_2d_NE4_bipolar-inphase_C2P_GRE_16ME_aspire_5mm
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND']"
+      SequenceName: fi2d4
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '4'
+      EchoTime: '19.98'
+      RepetitionTime: '726'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dNE4bipolarinphaseC2PGRE16MEaspire5mm
+      rec: ORIGINALPRIMARYMND
+      task: T2star2dNE4bipolarinphaseC2PGRE16MEaspire5mm
+      echo: '4'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/037-T2w-T-spine/SUB-017.MR.RESEARCH_21034_BELONG.0037.0001.2022.03.24.12.03.55.421102.288100455.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: T2w-T-spine
+      SeriesDescription: T2w-T-spine
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS3D', 'DIS2D']"
+      SequenceName: .spcR_100
+      SequenceVariant: "['SK', 'SP', 'OSP']"
+      ScanningSequence: SE
+      MRAcquisitionType: 3D
+      SliceThickness: '0.80000001192093'
+      FlipAngle: '120'
+      EchoNumbers: '1'
+      EchoTime: '120'
+      RepetitionTime: '1500'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: T2wTspine
+      rec: ORIGINALPRIMARYMNORMDIS3DDIS2D
+      task: T2wTspine
+      echo: '1'
+      mod: 3D
+      suffix: SE
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-017/ses-01/038-GRE-ME-T-spine/SUB-017.MR.RESEARCH_21034_BELONG.0038.0001.2022.03.24.12.03.55.421102.288108847.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: GRE-ME-T-spine
+      SeriesDescription: GRE-ME-T-spine
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS2D']"
+      SequenceName: .me2d1r3
+      SequenceVariant: SP
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '30'
+      EchoNumbers: '1'
+      EchoTime: '14'
+      RepetitionTime: '600'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: GREMETspine
+      rec: ORIGINALPRIMARYMNORMDIS2D
+      task: GREMETspine
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-018/ses-01/040-t2_spc_sag_p2_iso/SUB-018.MR.RESEARCH_21034_BELONG.0040.0001.2022.03.25.10.42.03.671794.288986219.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: t2_spc_sag_p2_iso
+      SeriesDescription: t2_spc_sag_p2_iso
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ND', 'NORM']"
+      SequenceName: .spcR_282ns
+      SequenceVariant: "['SK', 'SP']"
+      ScanningSequence: SE
+      MRAcquisitionType: 3D
+      SliceThickness: '1'
+      FlipAngle: '120'
+      EchoNumbers: '1'
+      EchoTime: '408'
+      RepetitionTime: '3200'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: t2spcsagp2iso
+      rec: ORIGINALPRIMARYMNDNORM
+      task: t2spcsagp2iso
+      echo: '1'
+      mod: 3D
+      suffix: SE
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-019/ses-01/031-T2w-T-spine/SUB-019.MR.RESEARCH_21034_BELONG.0031.0001.2022.03.30.11.19.59.847380.290316431.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: T2w-T-spine
+      SeriesDescription: T2w-T-spine
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS3D', 'DIS2D']"
+      SequenceName: .spcR_100
+      SequenceVariant: "['SK', 'SP', 'OSP']"
+      ScanningSequence: SE
+      MRAcquisitionType: 3D
+      SliceThickness: '0.80000001192093'
+      FlipAngle: '120'
+      EchoNumbers: '1'
+      EchoTime: '120'
+      RepetitionTime: '2290'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: T2wTspine
+      rec: ORIGINALPRIMARYMNORMDIS3DDIS2D
+      task: T2wTspine
+      echo: '1'
+      mod: 3D
+      suffix: SE
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-020/ses-01/016-Aspire_M_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-020.MR.RESEARCH_21034_BELONG.0016.0001.2022.04.12.13.33.26.503761.296295543.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: Aspire_M_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'ASPIRE', 'DIS2D']"
+      SequenceName: fi2d8
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '4.91'
+      RepetitionTime: '1330'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMASPIREDIS2D
+      task: AspireM2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-020/ses-01/017-Aspire_P_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-020.MR.RESEARCH_21034_BELONG.0017.0001.2022.04.12.13.33.26.503761.296296770.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: Aspire_P_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'ASPIRE', 'DIS2D']"
+      SequenceName: fi2d8
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '4.91'
+      RepetitionTime: '1330'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYPASPIREDIS2D
+      task: AspireP2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-020/ses-01/018-2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-020.MR.RESEARCH_21034_BELONG.0018.0001.2022.04.12.13.33.26.503761.296297997.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'NORM', 'DIS2D']"
+      SequenceName: fi2d8
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '4.91'
+      RepetitionTime: '1330'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMNORMDIS2D
+      task: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-020/ses-01/019-2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-020.MR.RESEARCH_21034_BELONG.0019.0001.2022.04.12.13.33.26.503761.296299253.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'P', 'DIS2D']"
+      SequenceName: fi2d8
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '1'
+      EchoTime: '4.91'
+      RepetitionTime: '1330'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYPDIS2D
+      task: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '1'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-020/ses-01/020-R2star_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-020.MR.RESEARCH_21034_BELONG.0020.0211.2022.04.12.13.33.26.503761.296300375.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: R2star_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'DIS2D']"
+      SequenceName: fi2d8
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '8'
+      EchoTime: '40.06'
+      RepetitionTime: '1330'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMDIS2D
+      task: R2star2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '8'
+      mod: 2D
+      suffix: GR
+    meta: {}
+  - provenance: /neurodesktop-storage/BeLong/raw/sub-020/ses-01/021-T2star_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new/SUB-020.MR.RESEARCH_21034_BELONG.0021.0211.2022.04.12.13.33.26.503761.296300540.IMA
+    properties:
+      filepath: ''
+      filename: ''
+      filesize: ''
+      nrfiles: ''
+    attributes:
+      Modality: MR
+      ProtocolName: 2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      SeriesDescription: T2star_2d_bipolar-inphase_C2P_GRE_16ME_aspire_1mm_iso_new
+      ImageType: "['ORIGINAL', 'PRIMARY', 'M', 'DIS2D']"
+      SequenceName: fi2d8
+      SequenceVariant: SS
+      ScanningSequence: GR
+      MRAcquisitionType: 2D
+      SliceThickness: '5'
+      FlipAngle: '50'
+      EchoNumbers: '8'
+      EchoTime: '40.06'
+      RepetitionTime: '1330'
+      PhaseEncodingDirection: ''
+    bids:
+      acq: 2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      rec: ORIGINALPRIMARYMDIS2D
+      task: T2star2dbipolarinphaseC2PGRE16MEaspire1mmisonew
+      echo: '8'
+      mod: 2D
+      suffix: GR
+    meta: {}
+PAR:
+# --------------------------------------------------------------------------------
+# PAR key-value heuristics (Philips PAR fields that are mapped to the BIDS labels)
+# --------------------------------------------------------------------------------
+  subject: <<filepath:/sub-(.*?)/>>     # This filesystem property extracts the subject label from the source directory. NB: Any property or attribute can be used as subject-label, e.g. <PatientID>
+  session: <<filepath:/ses-(.*?)/>>     # This filesystem property extracts the subject label from the source directory. NB: Any property or attribute can be used as session-label, e.g. <StudyID>
+
+  anat:       # ----------------------- All anatomical runs --------------------
+  func:       # ----------------------- All functional runs --------------------
+  perf:       # ----------------------- All perfusion runs ---------------------
+  dwi:        # ----------------------- All diffusion runs ---------------------
+  fmap:       # ----------------------- All fieldmap runs ----------------------
+  extra_data: # ----------------------- All extra data -------------------------
+  exclude:    # ----------------------- Data that will be left out -------------
+SPAR:
+# ---------------------------------------------------------------------------------
+# SPAR key-value heuristics (Philips MRS fields that are mapped to the BIDS labels)
+# ---------------------------------------------------------------------------------
+  subject: <<filepath:/sub-(.*?)/>>     # This filesystem property extracts the subject label from the source directory. NB: Any property or attribute can be used as subject-label, e.g. <PatientID>
+  session: <<filepath:/ses-(.*?)/>>     # This filesystem property extracts the subject label from the source directory. NB: Any property or attribute can be used as session-label, e.g. <StudyID>
+
+  mrs:        # ---------------------- All spectroscopy runs ------------------
+  extra_data: # ----------------------- All extra data -------------------------
+  exclude:    # ----------------------- Data that will be left out -------------
+Twix:
+# ---------------------------------------------------------------------------------
+# SPAR key-value heuristics (Philips MRS fields that are mapped to the BIDS labels)
+# ---------------------------------------------------------------------------------
+  subject: <<filepath:/sub-(.*?)/>>     # This filesystem property extracts the subject label from the source directory. NB: Any property or attribute can be used as subject-label, e.g. <PatientID>
+  session: <<filepath:/ses-(.*?)/>>     # This filesystem property extracts the subject label from the source directory. NB: Any property or attribute can be used as session-label, e.g. <StudyID>
+
+  mrs:        # ---------------------- All spectroscopy runs ------------------
+  extra_data: # ----------------------- All extra data -------------------------
+  exclude:    # ----------------------- Data that will be left out -------------
+Pfile:
+# ------------------------------------------------------------------------------
+# P-file key-value heuristics (GE MRS fields that are mapped to the BIDS labels)
+# ------------------------------------------------------------------------------
+  subject: <<filepath:/sub-(.*?)/>>     # This filesystem property extracts the subject label from the source directory. NB: Any property or attribute can be used as subject-label, e.g. <PatientID>
+  session: <<filepath:/ses-(.*?)/>>     # This filesystem property extracts the subject label from the source directory. NB: Any property or attribute can be used as session-label, e.g. <StudyID>
+
+  mrs:        # ---------------------- All spectroscopy runs ------------------
+  extra_data: # ----------------------- All extra data -------------------------
+  exclude:    # ----------------------- Data that will be left out -------------
+Physio:
+# --------------------------------------------------------------------------------
+# Physio key-value heuristics (phys2bids -info data) that are mapped to the BIDS labels)
+# --------------------------------------------------------------------------------
+  subject: <<filepath:/sub-(.*?)/>>     # This filesystem property extracts the subject label from the source directory. NB: Any property or attribute can be used as subject-label, e.g. <PatientID>
+  session: <<filepath:/ses-(.*?)/>>     # This filesystem property extracts the subject label from the source directory. NB: Any property or attribute can be used as session-label, e.g. <StudyID>
+
+  func:        # ----------------------- All functional runs --------------------
+  extra_data: # ----------------------- All extra data -------------------------
+  exclude:    # ----------------------- Data that will be left out -------------
+Nibabel:
+# --------------------------------------------------------------------------------
+# Nibabel key-value heuristics (header fields that are mapped to the BIDS labels)
+# --------------------------------------------------------------------------------
+  subject: <<filepath:/sub-(.*?)/>>     # This filesystem property extracts the subject label from the source directory. NB: Any property or attribute can be used as subject-label, e.g. <PatientID>
+  session: <<filepath:/ses-(.*?)/>>     # This filesystem property extracts the subject label from the source directory. NB: Any property or attribute can be used as session-label, e.g. <StudyID>
+
+  anat:       # ----------------------- All anatomical runs --------------------
+  func:       # ----------------------- All functional runs --------------------
+  perf:       # ----------------------- All perfusion runs ---------------------
+  dwi:        # ----------------------- All diffusion runs ---------------------
+  fmap:       # ----------------------- All fieldmap runs ----------------------
+  extra_data: # ----------------------- All extra data -------------------------
+  exclude:    # ----------------------- Data that will be left out -------------
