@@ -16,10 +16,10 @@
 
 # The following global variables are retrieved from the caller sct_run_batch
 # but could be overwritten by uncommenting the lines below:
-PATH_DATA_PROCESSED="/neurodesktop-storage/BeLong/bids_SCT/data_processed"
-PATH_RESULTS="/neurodesktop-storage/BeLong/bids_SCT/results"
-PATH_LOG="/neurodesktop-storage/BeLong/bids_SCT/log"
-PATH_QC="/neurodesktop-storage/BeLong/bids_SCT/qc"
+PATH_DATA_PROCESSED="/90days/uqtshaw/BeLong/iBeLong_SCT_BIDS/derivatives/data_processed"
+PATH_RESULTS="/90days/uqtshaw/BeLong/iBeLong_SCT_BIDS/derivatives/results"
+PATH_LOG="/90days/uqtshaw/BeLong/iBeLong_SCT_BIDS/derivatives/log"
+PATH_QC="/90days/uqtshaw/BeLong/iBeLong_SCT_BIDS/derivatives/qc"
 
 # BASH SETTINGS
 
