@@ -42,18 +42,18 @@ label_if_does_not_exist() {
     local file="$1"
     local file_seg="$2"
     # Update global variable with segmentation file name
-    FILELABEL="${file}_labels"
+    FILELABEL="${file}_labels.nii.gz"
     FILELABELMANUAL="${PATH_DATA}/derivatives/labels/${SUBJECT}/anat/${FILELABEL}-manual.nii.gz"
     echo "Looking for manual label: $FILELABELMANUAL"
-    if [[ -e $FILELABELMANUAL ]]; then
-	echo "Found! Using manual labels."
-	rsync -avzh "$FILELABELMANUAL" "${FILELABEL}".nii.gz
+    if [[ -e $FILELABEL ]]; then
+	echo "Found! Using manualalready generated labels."
+	#rsync -avzh "$FILELABELMANUAL" "${FILELABEL}".nii.gz
     else
 	echo "Not found. Proceeding with automatic labeling."
 	# Generate labeled segmentation
-	sct_label_vertebrae -i "${file}".nii.gz -s "${file_seg}".nii.gz -c t2 -qc "${PATH_QC}" -qc-subject "${SUBJECT}"
+	sct_label_vertebrae -i "${file}".nii.gz -s "${file_seg}" -c t2 -qc "${PATH_QC}" -qc-subject "${SUBJECT}"
 	# Create labels in the cord at C3 and C5 mid-vertebral levels
-	sct_label_utils -i "${file_seg}"_labeled.nii.gz -vert-body 3,5 -o "${FILELABEL}".nii.gz
+	sct_label_utils -i "${file_seg:0:-7}"_labeled.nii.gz -vert-body 3,5 -o "${FILELABEL}"
     fi
 }
 
@@ -67,14 +67,15 @@ segment_if_does_not_exist() {
     local file="$1"
     local contrast="$2"
     # Update global variable with segmentation file name
-    FILESEG="${file}_seg"
+    ####NOTE I changed this because it sucked
+    FILESEG="${file}_seg".nii.gz
     FILESEGMANUAL="${PATH_DATA}/derivatives/labels/${SUBJECT}/anat/${FILESEG}-manual.nii.gz"
     echo
-    echo "Looking for manual segmentation: $FILESEGMANUAL"
-    if [[ -e $FILESEGMANUAL ]]; then
+    echo "Looking for any segmentation: $FILESEG"
+    if [[ -e $FILESEG ]]; then
 	echo "Found! Using manual segmentation."
-	rsync -avzh "$FILESEGMANUAL" "${FILESEG}".nii.gz
-	sct_qc -i "${file}".nii.gz -s "${FILESEG}".nii.gz -p sct_deepseg_sc -qc ${PATH_QC} -qc-subject "${SUBJECT}"
+	#rsync -avzh "$FILESEGMANUAL" "${FILESEG}".nii.gz
+	sct_qc -i "${file}".nii.gz -s "${FILESEG}" -p sct_deepseg_sc -qc ${PATH_QC} -qc-subject "${SUBJECT}"
     else
 	echo "Not found. Proceeding with automatic segmentation."
 	# Segment spinal cord
@@ -106,7 +107,7 @@ echo $PATH_DATA
 
 # T2w Segmentation and CSA
 # ======================================================================================================================
-cd "${SUBJECT}/anat/"
+cd "${SUBJECT}/${ses}/anat/"
 file_t2="${SUBJECT}_ses-01_run-1_T2w"
 
 # Segment spinal cord (only if it does not exist)
@@ -117,16 +118,18 @@ file_t2_seg="${FILESEG}"
 label_if_does_not_exist "${file_t2}" "${file_t2_seg}"
 file_label="${FILELABEL}"
 # Register to template
-sct_register_to_template -i "${file_t2}.nii.gz" -s "${file_t2_seg}.nii.gz" -l "${file_label}.nii.gz" -c t2 \
-                         -param step=1,type=seg,algo=centermassrot:step=2,type=im,algo=syn,iter=5,slicewise=1,metric=CC,smooth=0 \
-                         -qc "${PATH_QC}"
+if [[ ! -e warp_template2anat.nii.gz ]] ; then
+    
+    sct_register_to_template -i "${file_t2}.nii.gz" -s "${file_t2_seg}" -l "${file_label}" -c t2 \
+                             -param step=1,type=seg,algo=centermassrot:step=2,type=im,algo=syn,iter=5,slicewise=1,metric=CC,smooth=0 \
+                             -qc "${PATH_QC}"
+fi
 # Warp template
 # Note: we dont need the white matter atlas at this point, therefore use flag "-a 0"
 sct_warp_template -d "${file_t2}.nii.gz" -w warp_template2anat.nii.gz -a 0 -ofolder label_T2w -qc "${PATH_QC}"
 # Compute average CSA between C2 and C3 levels (append across subjects)
-sct_process_segmentation -i "${file_t2_seg}.nii.gz" -vert 2:3 -vertfile label_T2w/template/PAM50_levels.nii.gz \
+sct_process_segmentation -i "${file_t2_seg}" -vert 2:3 -vertfile label_T2w/template/PAM50_levels.nii.gz \
                          -o "${PATH_RESULTS}/t2w_CSA.csv" -append 1 -qc "${PATH_QC}"
-
 # ======================================================================================================================
 #T2 Star (ME-GRE)
 file_t2s="${SUBJECT}_${ses}_run-1_T2starw"
@@ -141,15 +144,17 @@ sct_deepseg_gm -i "${file_t2s}".nii.gz -qc "$PATH_QC"
 
 # Register template->t2s (using warping field generated from template<->t2 registration)
 mkdir -p label_T2Star
-sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2s.nii.gz \
-			-iseg "${SCT_DIR}"/data/PAM50/template/PAM50_cord.nii.gz \
-			-d "${file_t2s}".nii.gz \
-			-dseg "${file_t2_seg}".nii.gz \
-			-param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3:step=3,type=im,algo=syn,slicewise=1,iter=1,metric=CC \
-			-initwarp ./warp_template2anat.nii.gz \
-			-initwarpinv ./warp_anat2template.nii.gz \
-			-owarp ./warp_template2t2s.nii.gz \
-			-owarpinv ./warp_t2s2template.nii.gz
+if [[ ! -e ./warp_t2s2template.nii.gz ]] ; then
+    sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2s.nii.gz \
+			    -iseg "${SCT_DIR}"/data/PAM50/template/PAM50_cord.nii.gz \
+			    -d "${file_t2s}".nii.gz \
+			    -dseg "${file_t2_seg}" \
+			    -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3:step=3,type=im,algo=syn,slicewise=1,iter=1,metric=CC \
+			    -initwarp ./warp_template2anat.nii.gz \
+			    -initwarpinv ./warp_anat2template.nii.gz \
+			    -owarp ./warp_template2t2s.nii.gz \
+			    -owarpinv ./warp_t2s2template.nii.gz
+fi
 
 # Warp template
 sct_warp_template -d "${file_t2s}".nii.gz \
@@ -173,33 +178,55 @@ sct_process_segmentation -i ./"${file_t2s}"_gmseg.nii.gz \
 #QSM_spinal_cord.
 # ===========================================================================================
 cd ../qsm/
-file_qsm_m="${SUBJECT}_${ses}_qsm_mag.nii.gz"
-file_qsm_p="${SUBJECT}_${ses}_qsm_final.nii.gz"
+file_qsm_head_m="qsmHM"
+file_qsm_head_p="qsmH"
+file_qsm_neck_m="qsmNM"
+file_qsm_neck_p="qsmN"
 
 #preprocessing of Mag image - use T1w as base. 
-segment_if_does_not_exist "${file_qsm_m}" "t1"
+segment_if_does_not_exist "${file_qsm_head_m}" "t2s"
 file_qsm_seg="${FILESEG}"
 # Create labels in the cord at C2 and C5 mid-vertebral levels (only if it does not exist)
-label_if_does_not_exist "${file_qsm_m}" "${file_qsm_seg}"
-file_label="${FILELABEL}"
+#label_if_does_not_exist "${file_qsm_head_m}" "${file_qsm_seg}"
+#file_label="${FILELABEL}"
 #this might not work or be necessary but worth a shot. 
+
+
+#do it this way?
+#sct_deepseg_sc -i qsmH.nii.gz -c t2s -brain 1 -centerline cnn
+#you need to move the SIEMENS Magnitude not the ASPIRE coil comb. because the intensity scalings are off
 
 
 #bring the Mag into the space of the template for downstream stats. Take the QSM output with it.
 #first crop the SC for ease of reg. ##TODO check if naming is correct for t1_seg
-sct_create_mask -i ${file_qsm_m} -p centerline,${file_qsm_seg} -size 35mm -f cylinder -o mask_qsm_m.nii.gz
-sct_create_mask -i ${file_qsm_p} -p centerline,${file_qsm_seg} -size 35mm -f cylinder -o mask_qsm_p.nii.gz
+#n = neck
+#h = head and neck
+#m = magnitude, p = phase (qsm output processed image from QSMxT)
+sct_create_mask -i ${file_qsm_head_m}.nii.gz -p centerline,../anat/${file_qsm_seg} -size 35mm -f cylinder -o mask_qsm_hm.nii.gz
+sct_create_mask -i ${file_qsm_head_p}.nii.gz -p centerline,../anat/${file_qsm_seg} -size 35mm -f cylinder -o mask_qsm_hp.nii.gz
+sct_create_mask -i ${file_qsm_neck_m}.nii.gz -p centerline,../anat/${file_qsm_seg} -size 35mm -f cylinder -o mask_qsm_nm.nii.gz
+sct_create_mask -i ${file_qsm_neck_p}.nii.gz -p centerline,../anat/${file_qsm_seg} -size 35mm -f cylinder -o mask_qsm_np.nii.gz
 #crop
-sct_crop_image -i ${file_qsm_m}.nii.gz -m mask_qsm_m.nii.gz
-sct_crop_image -i ${file_qsm_p}.nii.gz -m mask_qsm_p.nii.gz
+sct_crop_image -i ${file_qsm_head_m}.nii.gz -m mask_qsm_hm.nii.gz
+sct_crop_image -i ${file_qsm_head_p}.nii.gz -m mask_qsm_hp.nii.gz
+sct_crop_image -i ${file_qsm_neck_m}.nii.gz -m mask_qsm_nm.nii.gz
+sct_crop_image -i ${file_qsm_neck_p}.nii.gz -m mask_qsm_np.nii.gz
 
+#reg head and neck images to same space (neck space as we use t2s later)
+sct_register_multimodal -i ${file_qsm_head_m}_crop.nii.gz -d ${file_qsm_neck_m}_crop.nii.gz \
+                        -param step=1,type=im,algo=rigid,slicewise=1,metric=CC \
+                        -x spline -qc "${PATH_QC}" -owarp ${file_qsm_head_m}_crop_to_${file_qsm_neck_m}_warp.nii.gz
+#warp head to neck
+sct_apply_transfo -i ${file_qsm_head_p}.nii.gz -d ${file_qsm_neck_p}.nii.gz -w ${file_qsm_head_m}_crop_to_${file_qsm_neck_m}_warp.nii.gz \
+		  -o head_qsm_to_neckqsm.nii.gz -x spline
 
+mkdir -p label_qsm
 # Register template->qsm via t2s to account for GM segmentation
 #: the flag “-initwarpinv" provides a transformation qsm->template, in case you would like to bring all your qsm
 #       metrics in the PAM50 space (e.g. group averaging of maps)
 sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t1.nii.gz" \
 			-iseg "${SCT_DIR}/data/PAM50/template/PAM50_cord.nii.gz" \
-			-d crop_"${file_qsm_m}".nii.gz \
+			-d "${file_qsm_neck_m}".nii.gz \
 			-dseg ${file_qsm_seg} \
 			-initwarp ../anat/warp_template2t2s.nii.gz \
 			-initwarpinv ../anat/warp_t2s2template.nii.gz \
@@ -209,16 +236,17 @@ sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t1.nii.gz" \
 			-qc "$PATH_QC"
 
 
-# Warp template
-sct_warp_template -d crop_"${file_qsm_m}".nii.gz \
-		  -w ./warp_template2qsm_m.nii.gz
-sct_warp_template -d crop_"${file_qsm_q}".nii.gz \
-		  -w ./warp_template2qsm_p.nii.gz
+# Warp template to head and neck qsm finals.
+sct_warp_template -d head_qsm_to_neckqsm.nii.gz \
+		  -w ./warp_template2qsm.nii.gz
+sct_warp_template -d "${file_qsm_neck_p}".nii.gz \
+		  -w ./warp_template2qsm.nii.gz
 
-# compute qsm in dorsal columns between levels C2 and T1 (append across subjects)
-sct_extract_metric -i crop_${file_qsm_q}.nii.gz -f label_qsm_/atlas -vert 2:8 -vertfile label_qsm_mag/template/PAM50_levels.nii.gz \
+# compute qsm between C2 and T1 (append across subjects) ##todo - check if the label_qsm is correct
+sct_extract_metric -i ${file_qsm_neck_p}.nii.gz -f label_qsm/atlas -vert 2:8 -vertfile label_qsm_mag/template/PAM50_levels.nii.gz \
                    -perlevel 1 -method map -o "${PATH_RESULTS}/QSM_in_labels.csv" -append 1
-
+sct_extract_metric -i head_qsm_to_neckqsm.nii.gz -f label_qsm/atlas -vert 2:8 -vertfile label_qsm_mag/template/PAM50_levels.nii.gz \
+                   -perlevel 1 -method map -o "${PATH_RESULTS}/QSM_in_labels.csv" -append 1
 
 # dmri
 # ===========================================================================================
@@ -332,6 +360,7 @@ file_mt1="${file_mt1}_crop"
 sct_register_multimodal -i "${file_mt0}.nii.gz" -d "${file_mt1}.nii.gz" \
                         -param step=1,type=im,algo=rigid,slicewise=1,metric=CC \
                         -x spline -qc "${PATH_QC}"
+
 # Register template->mt1
 # Tips: here we only use the segmentations due to poor SC/CSF contrast at the bottom slice.
 # Tips: First step: slicereg based on images, with large smoothing to capture

@@ -5,6 +5,7 @@
 #a bit variable as QC is different and lots of different trials with sequence params
 
 #choices based on manual inspection pass/fail for SNR and quality of qsmxt output
+#2022 09 27 - need to fix all mag images to get the run after - siemens not ASPIRE mag. needed. TODO: 
 SCT_dir=/90days/uqtshaw/BeLong/BeLong_SCT_BIDS/
 #sub-025/ses-01/qsm
 final_qsm_dir=/90days/uqtshaw/BeLong/BeLong_QSMxT_BIDS/02_qsm/qsm_final
@@ -57,10 +58,10 @@ cp sub-021_ses-01_run-01_echo-01_part-phase_MEGRE_scaled_qsm_000_twopass_average
 cp sub-021_ses-01_run-06_echo-01_part-phase_MEGRE_scaled_qsm_000_twopass_average.nii ${SCT_dir}/sub-021/ses-01/qsm/qsmH.nii
 #all the same
 for x in sub-020 sub-022 sub-023 sub-024 sub-025 sub-026 sub-027 sub-028 sub-029 ; do 
-    cp ${x}_ses-01_run-01_echo-01_part-phase_MEGRE*.nii ${SCT_dir}/${x}/ses-01/qsm/qsmH.nii
-    cp ${x}_ses-01_run-04_echo-01_part-phase_MEGRE*.nii ${SCT_dir}/${x}/ses-01/qsm/qsmN.nii
+    cp ${x}_ses-0?_run-01_echo-01_part-phase_MEGRE*.nii ${SCT_dir}/${x}/ses-01/qsm/qsmH.nii
+    cp ${x}_ses-0?_run-04_echo-01_part-phase_MEGRE*.nii ${SCT_dir}/${x}/ses-01/qsm/qsmN.nii
 done
-
+#cp sub-022
 #sub-024_ses-01_run-01_echo-13_part-phase_MEGRE.nii sub-024_ses-01_run-01_echo-01_part-phase_MEGRE.nii
 ###################
 
@@ -119,6 +120,13 @@ cp sub-021/ses-01/anat/*_run-01_echo-01_part-mag_MEGRE.nii ${SCT_dir}/sub-021/se
 cp sub-021/ses-01/anat/*_run-06_echo-01_part-mag_MEGRE.nii ${SCT_dir}/sub-021/ses-01/qsm/qsmHM.nii
 #all the same
 for x in sub-020 sub-022 sub-023 sub-024 sub-025 sub-026 sub-027 sub-028 sub-029 ; do 
-    cp ${x}/ses-01/anat/${x}_ses*_run-01_echo-01_part-mag_MEGRE.nii ${SCT_dir}/${x}/ses-01/qsm/qsmHM.nii
-    cp ${x}/ses-01/anat/${x}_ses*_run-04_echo-01_part-mag_MEGRE.nii ${SCT_dir}/${x}/ses-01/qsm/qsmNM.nii
+    cp ${x}/ses-0?/anat/${x}_ses*_run-01_echo-01_part-mag_MEGRE.nii ${SCT_dir}/${x}/ses-01/qsm/qsmHM.nii
+    cp ${x}/ses-0?/anat/${x}_ses*_run-04_echo-01_part-mag_MEGRE.nii ${SCT_dir}/${x}/ses-01/qsm/qsmNM.nii
+done
+
+for subjName in 005 006 007 011 013 014 015 016 017 018 019 020 021 022 023 024 025 026 027 028 029 ; do    
+    cd  ${SCT_dir}/sub-${subjName}/ses-01/qsm/
+    for x in *nii ; do
+	gzip $x
+    done
 done
