@@ -217,14 +217,16 @@ file_qsm_neck_p="qsmN"
 ResampleImage 3 ${file_qsm_neck_p}.nii.gz ${file_qsm_neck_p}_resampled.nii.gz 0.5x0.5x0.5 0 4 6
 ResampleImage 3 ${file_qsm_neck_m}.nii.gz ${file_qsm_neck_m}_resampled.nii.gz 0.5x0.5x0.5 0 4 6
 
-sct_register_multimodal -i ${file_qsm_head_p}.nii.gz -d ${file_qsm_neck_p}_resampled.nii.gz -identity 1
-sct_register_multimodal -i ${file_qsm_head_m}.nii.gz -d ${file_qsm_neck_m}_resampled.nii.gz -identity 1
+sct_register_multimodal -i ${file_qsm_head_p}.nii.gz -d ${file_qsm_neck_p}_resampled.nii.gz -identity 1 -o ${file_qsm_head_p}_resampled.nii.gz 
+sct_register_multimodal -i ${file_qsm_head_m}.nii.gz -d ${file_qsm_neck_m}_resampled.nii.gz -identity 1 -o ${file_qsm_head_m}_resampled.nii.gz
+
 #reg head and neck images to same space (neck space as we use t2s later)
-sct_register_multimodal -i ${file_qsm_head_m}_crop.nii.gz -d ${file_qsm_neck_m}.nii.gz \
+sct_register_multimodal -i ${file_qsm_head_m}_resampled.nii.gz -d ${file_qsm_neck_m}_resampled.nii.gz \
 			-param step=1,type=im,algo=rigid,slicewise=1,metric=CC \
 			-x spline -qc "${PATH_QC}" -owarp ${file_qsm_head_m}_crop_to_${file_qsm_neck_m}_warp.nii.gz
 #warp head to neck
-sct_apply_transfo -i ${file_qsm_head_p}.nii.gz -d ${file_qsm_neck_p}.nii.gz -w ${file_qsm_head_m}_crop_to_${file_qsm_neck_m}_warp.nii.gz \
+sct_apply_transfo -i ${file_qsm_head_p}_resampled.nii.gz -d ${file_qsm_neck_p}_resampled.nii.gz \
+		  -w ${file_qsm_head_m}_crop_to_${file_qsm_neck_m}_warp.nii.gz \
 		  -o head_qsm_to_neckqsm.nii.gz -x spline
 
 mkdir -p label_qsm
@@ -233,7 +235,7 @@ mkdir -p label_qsm
 #       metrics in the PAM50 space (e.g. group averaging of maps)
 sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t1.nii.gz" \
 			-iseg "${SCT_DIR}/data/PAM50/template/PAM50_cord.nii.gz" \
-			-d "${file_qsm_neck_m}".nii.gz \
+			-d "${file_qsm_neck_m}"_resampled.nii.gz \
 			-dseg ${file_qsm_seg} \
 			-initwarp ../anat/warp_template2t2s.nii.gz \
 			-initwarpinv ../anat/warp_t2s2template.nii.gz \
@@ -245,11 +247,11 @@ sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t1.nii.gz" \
 # Warp template to head and neck qsm finals.
 sct_warp_template -d head_qsm_to_neckqsm.nii.gz \
 		  -w ./warp_template2qsm.nii.gz -qc "${PATH_QC}"
-sct_warp_template -d "${file_qsm_neck_p}".nii.gz \
+sct_warp_template -d "${file_qsm_neck_p}"_resampled.nii.gz \
 		  -w ./warp_template2qsm.nii.gz -qc "${PATH_QC}"
 
 # compute qsm between C2 and T1 (append across subjects) ##todo - check if the label_qsm is correct
-sct_extract_metric -i ${file_qsm_neck_p}.nii.gz -f label/atlas -vert 2:8 -vertfile label/template/PAM50_levels.nii.gz \
+sct_extract_metric -i ${file_qsm_neck_p}_resampled.nii.gz -f label/atlas -vert 2:8 -vertfile label/template/PAM50_levels.nii.gz \
                    -perlevel 1 -method map -o "${PATH_RESULTS}/QSM_in_labels.csv" -append 1
 sct_extract_metric -i head_qsm_to_neckqsm.nii.gz -f label/atlas -vert 2:8 -vertfile label/template/PAM50_levels.nii.gz \
                    -perlevel 1 -method map -o "${PATH_RESULTS}/QSM_in_labels.csv" -append 1
