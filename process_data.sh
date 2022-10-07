@@ -31,6 +31,7 @@ set -e
 # Exit if user presses CTRL+C (Linux) or CMD+C (OSX)
 trap "echo Caught Keyboard Interrupt within script. Exiting now.; exit" INT
 # CONVENIENCE FUNCTIONS
+
 # ======================================================================================================================
 label_if_does_not_exist() {
     ###
@@ -104,7 +105,7 @@ echo path of data processed
 echo $PATH_DATA_PROCESSED
 echo path of data??
 echo $PATH_DATA
-
+module load ants/2.3.5
 # T2w Segmentation and CSA
 # ======================================================================================================================
 cd "${SUBJECT}/anat/"
@@ -214,11 +215,18 @@ file_qsm_neck_p="qsmN"
 
 #just crop the whole damn image - ignore everything above
 #first resample 
-ResampleImage 3 ${file_qsm_neck_p}.nii.gz ${file_qsm_neck_p}_resampled.nii.gz 0.5x0.5x0.5 0 4 6
-ResampleImage 3 ${file_qsm_neck_m}.nii.gz ${file_qsm_neck_m}_resampled.nii.gz 0.5x0.5x0.5 0 4 6
+sct_resample -i ${file_qsm_neck_p}.nii.gz -mm 0.5x0.5x0.5 -x spline -o ${file_qsm_neck_p}_resampled.nii.gz
+sct_resample -i ${file_qsm_neck_m}.nii.gz -mm 0.5x0.5x0.5 -x spline -o ${file_qsm_neck_m}_resampled.nii.gz
 
+#crop the mag and phase images in head to be the same as neck size and shape
 sct_register_multimodal -i ${file_qsm_head_p}.nii.gz -d ${file_qsm_neck_p}_resampled.nii.gz -identity 1 -o ${file_qsm_head_p}_resampled.nii.gz 
 sct_register_multimodal -i ${file_qsm_head_m}.nii.gz -d ${file_qsm_neck_m}_resampled.nii.gz -identity 1 -o ${file_qsm_head_m}_resampled.nii.gz
+
+
+# Segment SC on mag images
+sct_deepseg_sc -i ${file_qsm_neck_m}_resampled.nii.gz \
+	       -c t2s \
+	       -qc "${PATH_QC}"
 
 #reg head and neck images to same space (neck space as we use t2s later)
 sct_register_multimodal -i ${file_qsm_head_m}_resampled.nii.gz -d ${file_qsm_neck_m}_resampled.nii.gz \
@@ -236,8 +244,8 @@ mkdir -p label_qsm
 sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t1.nii.gz" \
 			-iseg "${SCT_DIR}/data/PAM50/template/PAM50_cord.nii.gz" \
 			-d "${file_qsm_neck_m}"_resampled.nii.gz \
-			-dseg ${file_qsm_seg} \
-			-initwarp ../anat/warp_template2t2s.nii.gz \
+			-dseg "${file_qsm_neck_m}"_resampled_seg.nii.gz \
+		      	-initwarp ../anat/warp_template2t2s.nii.gz \
 			-initwarpinv ../anat/warp_t2s2template.nii.gz \
 			-owarp warp_template2qsm.nii.gz \
 			-owarpinv warp_qsm2template.nii.gz \
