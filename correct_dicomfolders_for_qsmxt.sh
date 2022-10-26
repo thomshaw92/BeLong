@@ -13,7 +13,7 @@ for x in sub-* ; do
        	cp -vr *Aspire_P_* *T1w* ${qsmxt_raw}/${x}/${ses}/
         cp -vr `ls -d *3d-bipolar* | head -n 4 | tail -n 1` ${qsmxt_raw}/${x}/${ses}/
         cp -vr `ls -d *2d_bipolar* | head -n 4 | tail -n 1` ${qsmxt_raw}/${x}/${ses}/
-	rm -r ${qsmxt_raw}/${x}/${ses}/*GRE*
+	rm -r ${qsmxt_raw}/${x}/${ses}/*GRE-T1w*
 	cd ${qsmxt_raw}/${x}/${ses}
 	for y in * ; do mv ${y}/* ./
 	done
