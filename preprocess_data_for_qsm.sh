@@ -105,8 +105,8 @@ echo path of data processed
 echo $PATH_DATA_PROCESSED
 echo path of data??
 echo $PATH_DATA
-module load ants/2.3.5
-# T2w Segmentation and CSA
+
+
 # ======================================================================================================================
 cd "${SUBJECT}/anat/"
 
@@ -114,45 +114,70 @@ cd "${SUBJECT}/anat/"
 # ===========================================================================================
 cd ../qsm/
 file_qsm_head_m="qsmHM"
-file_qsm_head_p="qsmH"
+#file_qsm_head_p="qsmH"
 file_qsm_neck_m="qsmNM"
-file_qsm_neck_p="qsmN"
+#file_qsm_neck_p="qsmN"
+#need to do this for all echoes??
+#need to input first phase image into folder and mask it. 
 
 #first resample 
-sct_resample -i ${file_qsm_neck_p}.nii.gz -mm 0.5x0.5x0.5 -x spline -o ${file_qsm_neck_p}_resampled.nii.gz
 sct_resample -i ${file_qsm_neck_m}.nii.gz -mm 0.5x0.5x0.5 -x spline -o ${file_qsm_neck_m}_resampled.nii.gz
+sct_resample -i ${file_qsm_head_m}.nii.gz -mm 0.5x0.5x0.5 -x spline -o ${file_qsm_head_m}_resampled.nii.gz
 
-#crop the mag and phase images in head to be the same as neck size and shape
-sct_register_multimodal -i ${file_qsm_head_p}.nii.gz -d ${file_qsm_neck_p}_resampled.nii.gz -identity 1 -o ${file_qsm_head_p}_resampled.nii.gz 
-sct_register_multimodal -i ${file_qsm_head_m}.nii.gz -d ${file_qsm_neck_m}_resampled.nii.gz -identity 1 -o ${file_qsm_head_m}_resampled.nii.gz
+#crop the mag  images in head to be the same as neck size and shape 
+#sct_register_multimodal -i ${file_qsm_head_m}.nii.gz -d ${file_qsm_neck_m}_resampled.nii.gz -identity 1 -o ${file_qsm_head_m}_resampled.nii.gz
 
-
-# Segment SC on mag images
-sct_deepseg_sc -i ${file_qsm_neck_m}_resampled.nii.gz \
-	       -c t2s \
-	       -qc "${PATH_QC}"
+if [[ ! -e ./qsmHM_resampled_seg.nii.gz ]] ; then
+    # Segment SC on mag images
+    sct_deepseg_sc -i ${file_qsm_head_m}_resampled.nii.gz \
+		   -c t2s \
+		   -brain 1 \
+		   -centerline viewer \
+		   -qc "${PATH_QC}"
+fi
+if [[ ! -e ./qsmNM_resampled_seg.nii.gz ]] ; then
+    sct_deepseg_sc -i ${file_qsm_neck_m}_resampled.nii.gz \
+		   -c t2s \
+		   -centerline viewer \
+		   -qc "${PATH_QC}"
+fi
 
 #reg head and neck images to same space (neck space as we use t2s later)
-sct_register_multimodal -i ${file_qsm_head_m}_resampled.nii.gz -d ${file_qsm_neck_m}_resampled.nii.gz \
-			-param step=1,type=im,algo=rigid,slicewise=1,metric=CC \
-			-x spline -qc "${PATH_QC}" -owarp ${file_qsm_head_m}_crop_to_${file_qsm_neck_m}_warp.nii.gz
+#sct_register_multimodal -i ${file_qsm_neck_m}_resampled.nii.gz -d ${file_qsm_head_m}_resampled.nii.gz \
+    #			-param step=1,type=im,algo=rigid,slicewise=1,metric=CC \
+    #			-x spline -qc "${PATH_QC}" -owarp ${file_qsm_neck_m}_crop_to_${file_qsm_head_m}_warp.nii.gz -owarpinv ${file_qsm_neck_m}_crop_to_${file_qsm_head_m}_invwarp.nii.gz
 #warp head to neck
-sct_apply_transfo -i ${file_qsm_head_p}_resampled.nii.gz -d ${file_qsm_neck_p}_resampled.nii.gz \
-		  -w ${file_qsm_head_m}_crop_to_${file_qsm_neck_m}_warp.nii.gz \
-		  -o head_qsm_to_neckqsm.nii.gz -x spline
+#sct_apply_transfo -i ${file_qsm_neck_m}_resampled.nii.gz -d ${file_qsm_head_m}_resampled.nii.gz \
+    #		  -w ${file_qsm_neck_m}_crop_to_${file_qsm_head_m}_warp.nii.gz \
+    #		  -o neck_qsm_to_head_mag_echo-1.nii.gz -x spline
 #n = neck
 #h = head and neck
+
+#######use resampled neck to head qsm image to create mask.  ### use resampled iso images. 
 #m = magnitude, p = phase (qsm output processed image from QSMxT)
-sct_create_mask -i ${file_qsm_head_m}.nii.gz -p centerline,./${file_qsm_seg} -size 35mm -f cylinder -o mask_qsm_hm.nii.gz
-sct_create_mask -i ${file_qsm_head_p}.nii.gz -p centerline,./${file_qsm_seg} -size 35mm -f cylinder -o mask_qsm_hp.nii.gz
-sct_create_mask -i ${file_qsm_neck_m}.nii.gz -p centerline,./${file_qsm_seg} -size 35mm -f cylinder -o mask_qsm_nm.nii.gz
-sct_create_mask -i ${file_qsm_neck_p}.nii.gz -p centerline,./${file_qsm_seg} -size 35mm -f cylinder -o mask_qsm_np.nii.gz
-#crop
-sct_crop_image -i ${file_qsm_head_m}.nii.gz -m mask_qsm_hm.nii.gz
-sct_crop_image -i ${file_qsm_head_p}.nii.gz -m mask_qsm_hp.nii.gz
-sct_crop_image -i ${file_qsm_neck_m}.nii.gz -m mask_qsm_nm.nii.gz
-sct_crop_image -i ${file_qsm_neck_p}.nii.gz -m mask_qsm_np.nii.gz
-done
+sct_create_mask -i ${file_qsm_head_m}_resampled.nii.gz -p centerline,./qsmHM_resampled_seg.nii.gz -size 25mm -f cylinder -o mask_qsm_hm.nii.gz
+sct_create_mask -i ${file_qsm_neck_m}_resampled.nii.gz -p centerline,./qsmNM_resampled_seg.nii.gz -size 25mm -f cylinder -o mask_qsm_nm.nii.gz
+#try gaussian too
+sct_create_mask -i ${file_qsm_head_m}_resampled.nii.gz -p centerline,./qsmHM_resampled_seg.nii.gz -size 25mm -f gaussian -o mask_qsm_hm_gaus.nii.gz
+sct_create_mask -i ${file_qsm_neck_m}_resampled.nii.gz -p centerline,./qsmNM_resampled_seg.nii.gz -size 25mm -f gaussian -o mask_qsm_nm_gaus.nii.gz
+
+
+#crop not needed
+#sct_crop_image -i ${file_qsm_head_m}_resampled.nii.gz -m mask_qsm_hm.nii.gz
+#sct_crop_image -i ${file_qsm_neck_m}_resampled.nii.gz -m mask_qsm_nm.nii.gz
+
+#sct_crop_image -i ${file_qsm_head_m}_resampled.nii.gz -m mask_qsm_hm_gaus.nii.gz -o ${file_qsm_head_m}_resampled_crop_gaus.nii.gz
+#sct_crop_image -i ${file_qsm_neck_m}_resampled.nii.gz -m mask_qsm_nm_gaus.nii.gz -o ${file_qsm_head_m}_resampled_crop_gaus.nii.gz
+
+#warp cropped mask head and neck (identity 1)
+sct_register_multimodal -i mask_qsm_hm.nii.gz -d ${file_qsm_head_m}.nii.gz -identity 1 -o final_mask_qsm_mag_echo_1_head_space.nii.gz
+sct_register_multimodal -i mask_qsm_nm.nii.gz -d ${file_qsm_neck_m}.nii.gz -identity 1 -o final_mask_qsm_mag_echo_1_neck_space.nii.gz
+sct_register_multimodal -i mask_qsm_hm_gaus.nii.gz -d ${file_qsm_head_m}.nii.gz -identity 1 -o final_mask_qsm_mag_echo_1_head_space_gaus.nii.gz
+sct_register_multimodal -i mask_qsm_nm_gaus.nii.gz -d ${file_qsm_neck_m}.nii.gz -identity 1 -o final_mask_qsm_mag_echo_1_neck_space_gaus.nii.gz
+#warp mask to neck (inverse warp)
+#sct_apply_transfo -i mask_qsm_nm.nii.gz -d ${file_qsm_neck_m}.nii.g \
+    #		  -w ${file_qsm_neck_m}_crop_to_${file_qsm_head_m}_invwarp.nii.gz \
+    #		  -o final_mask_qsm_mag_echo_1_neck_space.nii.gz -x label
 
 # Display useful info for the log
 end=$(date +%s)

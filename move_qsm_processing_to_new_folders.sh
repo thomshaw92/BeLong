@@ -99,9 +99,9 @@ cp sub-015/ses-01/anat/*_run-02_echo-01_part-mag_MEGRE.nii ${SCT_dir}/sub-015/se
 #N 
 cp sub-015/ses-01/anat/*_run-04_echo-01_part-mag_MEGRE.nii ${SCT_dir}/sub-015/ses-01/qsm/qsmNM.nii
 #H&N - is incorrect - changed to 2
-cp sub-016/ses-01/anat/*_run-02_echo-01_part-mag_MEGRE.nii ${SCT_dir}/sub-016/ses-01/qsm/qsmHM.nii
+cp sub-016/ses-01/anat/*_run-04_echo-01_part-mag_MEGRE.nii ${SCT_dir}/sub-016/ses-01/qsm/qsmHM.nii
 #n ### up to here
-cp sub-016/ses-01/anat/*_run-04_echo-01_part-mag_MEGRE.nii ${SCT_dir}/sub-016/ses-01/qsm/qsmNM.nii
+cp sub-016/ses-01/anat/*_run-02_echo-01_part-mag_MEGRE.nii ${SCT_dir}/sub-016/ses-01/qsm/qsmNM.nii
 #HN/anat/
 cp sub-017/ses-01/anat/*_run-02_echo-01_part-mag_MEGRE.nii ${SCT_dir}/sub-017/ses-01/qsm/qsmHM.nii
 #N
