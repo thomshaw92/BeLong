@@ -19,11 +19,12 @@ Fs = 10  # Sample rate in Hz
 Ts = 1000 / Fs  # Sample period in ms
 dispN = 200  # Number of points to display in plot
 
+        
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title('Load Cell Recording')
-
+        self.max_force = None  # Initialize max force tracking
         # Prompt for participant name via GUI
         self.participant_name = simpledialog.askstring("Participant Name", "Enter participant name:", parent=self)
         
@@ -67,14 +68,16 @@ class App(tk.Tk):
             csv_writer = csv.writer(csvfile)
             csv_writer.writerow(['Timestamp', 'ADC Reading'])
 
-
     def animate(self, i, xs, ys):
         # Read data from LoadCell
         adcRead = lc.readLoadCellConverted()
         ys.append(adcRead)
         xs.append(i / Fs)
-        # Limit x and y lists to dispN items
         xs, ys = xs[-dispN:], ys[-dispN:]
+
+        # Update max force
+        if self.max_force is None or adcRead > self.max_force:
+            self.max_force = adcRead
 
         # Update plot
         self.ax.clear()
@@ -87,7 +90,7 @@ class App(tk.Tk):
         with open(self.csv_filename, 'a', newline='') as csvfile:
             csv_writer = csv.writer(csvfile)
             csv_writer.writerow([datetime.datetime.now().isoformat(), adcRead])
-
+    
     def start_recording(self):
         # Start animation for real-time plotting
         if self.ani is None and self.location_var.get() != "Select Location":
@@ -95,14 +98,23 @@ class App(tk.Tk):
             self.canvas.draw()
         else:
             messagebox.showwarning("Warning", "Please select a location before starting the recording.")
-
+            
     def stop_recording(self):
         # Stop animation and save plot
         if self.ani is not None:
             self.ani.event_source.stop()
             self.ani = None
             self.fig.savefig(self.png_filename)
-            messagebox.showinfo("Recording Stopped", f"Recording stopped. Plot saved as {self.png_filename}.")
+            
+            # Save max force to a text file
+            max_force_filename = os.path.join(self.directory_path, f"max_force_{self.location_var.get().replace(' ', '_')}_{self.datetime_str}.txt")
+            with open(max_force_filename, 'w') as f:
+                f.write(f"Max Force for this trial: {self.max_force}\n")
+
+            # Reset max force for next trial
+            self.max_force = None
+
+            messagebox.showinfo("Recording Stopped", f"Recording stopped. Plot saved as {self.png_filename} and max force saved as {max_force_filename}.")
 
 if __name__ == "__main__":
     app = App()
